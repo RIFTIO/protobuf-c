@@ -64,8 +64,10 @@
 #include <set>
 #include <stdio.h>		// for snprintf
 #include <float.h>
+#include <stack>
 
 #include <protoc-c/c_helpers.h>
+#include <protoc-c/c_message.h>
 #include <google/protobuf/stubs/common.h>
 
 namespace google {
@@ -256,7 +258,10 @@ const char* const kKeywordList[] = {
   "reinterpret_cast", "return", "short", "signed", "sizeof", "static",
   "static_cast", "struct", "switch", "template", "this", "throw", "true", "try",
   "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual",
-  "void", "volatile", "wchar_t", "while", "xor", "xor_eq"
+  "void", "volatile", "wchar_t", "while", "xor", "xor_eq",
+  "restrict",
+  "alignas", "alignof", "char16_t", "char32_t", "constexpr", "decltype",
+  "noexcept", "nullptr", "static_assert", "thread_local"
 };
 
 std::set<string> MakeKeywordsMap() {
@@ -310,7 +315,7 @@ string FieldName(const FieldDescriptor* field) {
 
 string FieldDeprecated(const FieldDescriptor* field) {
   if (field->options().deprecated()) {
-    return " PROTOBUF_C__DEPRECATED";
+    return " PROTOBUF_C_DEPRECATED";
   }
   return "";
 }
@@ -398,7 +403,7 @@ WriteIntRanges(io::Printer* printer, int n_values, const int *values, const stri
     return 0;
   }
 }
-    
+
 
 
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
@@ -533,7 +538,7 @@ static int CEscapeInternal(const char* src, int src_len, char* dest,
           if (dest_len - used < 4) // need space for 4 letter escape
             return -1;
           sprintf(dest + used, (use_hex ? "\\x%02x" : "\\%03o"),
-                  static_cast<uint8>(*src));
+                  *reinterpret_cast<const uint8*>(src));
           is_hex_escape = use_hex;
           used += 4;
         } else {
@@ -549,6 +554,7 @@ static int CEscapeInternal(const char* src, int src_len, char* dest,
   dest[used] = '\0';   // doesn't count towards return value though
   return used;
 }
+
 string CEscape(const string& src) {
   const int dest_length = src.size() * 4 + 1; // Maximum possible expansion
   scoped_array<char> dest(new char[dest_length]);
@@ -557,6 +563,91 @@ string CEscape(const string& src) {
   GOOGLE_DCHECK_GE(len, 0);
   return string(dest.get(), len);
 }
+
+/*
+ * Rift specific helper functions mainly for gi code generation.
+ */
+
+string MangleNameToUpper(const string &package) {
+  string ret = StringReplace(package, ".", "_", true);
+  return ToUpper(ret);
+}
+
+string MangleNameToCamel(const string &package) {
+  string ret = StringReplace(package, ".", "_", true);
+  return ToCamel(ret);
+}
+
+string FullNameToGICBase(const string &full_name) {
+  vector<string> pieces;
+  SplitStringUsing(full_name, ".", &pieces);
+  string rv = "";
+  for (unsigned i = 0; i < pieces.size(); i++) {
+    if (pieces[i] == "") continue;
+    if (rv != "") rv += "__";
+    rv += CamelToLower(pieces[i]);
+  }
+  return rv + "__gi";
+}
+
+string FullNameToGIType(const Descriptor* descriptor, const RiftMopts * /*mopts*/) {
+  const MessageGenerator* mg = NULL;
+  RiftMopts mopts;
+
+  mdesc_to_riftmopts(descriptor, &mopts);
+
+  string full_name = "";
+  if (mopts.msg_new_path.length()) {
+    full_name = mopts.msg_new_path;
+  } else {
+    full_name = descriptor->full_name();
+  }
+
+  vector<string> pieces;
+  SplitStringUsing(full_name, ".", &pieces);
+  string rv = "";
+  char sep = '.';
+  for (unsigned i = 0; i < pieces.size(); i++) {
+    if (pieces[i] == "") continue;
+    if (rv != "") {
+      rv += sep;
+      sep = '_';
+    }
+    rv += ToCamel(pieces[i]);
+    if ('.' == sep) {
+      rv += "Yang";
+    }
+  }
+  return rv;
+}
+
+string FullNameToGI(const Descriptor* descriptor, const RiftMopts *mopts) {
+  const MessageGenerator* mg = NULL;
+  RiftMopts local;
+
+  if (!mopts) {
+    mdesc_to_riftmopts(descriptor, &local);
+    mopts = &local;
+  }
+
+  string full_name = "";
+  if (mopts->msg_new_path.length()) {
+    full_name = mopts->msg_new_path;
+  } else {
+    full_name = descriptor->full_name();
+  }
+
+  vector<string> pieces;
+  SplitStringUsing(full_name, ".", &pieces);
+  string rv = "";
+  for (unsigned i = 0; i < pieces.size(); i++) {
+    if (pieces[i] == "") continue;
+    if (rv != "") rv += "_";
+    rv += ToCamel(pieces[i]);
+  }
+  return "rwpb_gi_" + rv;
+}
+
 
 }  // namespace c
 }  // namespace compiler

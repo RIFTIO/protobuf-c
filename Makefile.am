@@ -18,8 +18,8 @@ AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/protobuf-c \
 	-I${top_builddir} \
-	-I${top_srcdir}
-AM_CFLAGS = ${my_CFLAGS}
+	-I${top_srcdir} $(GOBJ_CFLAGS)
+AM_CFLAGS = -Werror ${my_CFLAGS} $(GOBJ_CFLAGS)
 AM_LDFLAGS =
 
 # code coverage
@@ -42,24 +42,28 @@ lib_LTLIBRARIES += \
 	protobuf-c/libprotobuf-c.la
 
 nobase_include_HEADERS += \
-	protobuf-c/protobuf-c.h
+	protobuf-c/rift-protobuf-c.h \
+        protobuf-c/rift/rw_delta.pb-c.h \
+        protobuf-c/rift/rw_pb_delta.h
 
 protobuf_c_libprotobuf_c_la_SOURCES = \
 	protobuf-c/protobuf-c.c \
-	protobuf-c/protobuf-c.h
+	protobuf-c/pbc_b64.h \
+	protobuf-c/rift-protobuf-c.h \
+        protobuf-c/rift/rw_pb_delta.h \
+        protobuf-c/rift/rw_pb_delta.c \
+        protobuf-c/rift/rw_delta.pb-c.c \
+        protobuf-c/rift/rw_delta.pb-c.h 
+
+protobuf_c_libprotobuf_c_la_LIBADD = $(GOBJ_LIBS) -lgobject-2.0 -lpthread
 
 protobuf_c_libprotobuf_c_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBPROTOBUF_C_CURRENT):$(LIBPROTOBUF_C_REVISION):$(LIBPROTOBUF_C_AGE) \
+        -export-symbols-regex "^(protobuf_c_[a-z].*)" \
 	-no-undefined
 
-if HAVE_LD_VERSION_SCRIPT
-protobuf_c_libprotobuf_c_la_LDFLAGS += \
-    -Wl,--version-script=$(top_srcdir)/protobuf-c/libprotobuf-c.sym
-else
-protobuf_c_libprotobuf_c_la_LDFLAGS += \
-    -export-symbols-regex "^(protobuf_c_[a-z].*)"
-endif
-EXTRA_DIST += protobuf-c/libprotobuf-c.sym
+protobuf-c/rift/rw_delta.pb-c.c protobuf-c/rift/rw_delta.pb-c.h: $(top_builddir)/protoc-c/protoc-c$(EXEEXT) $(top_srcdir)/protobuf-c/rift/rw_delta.proto
+	$(AM_V_GEN)$(top_builddir)/protoc-c/protoc-c$(EXEEXT) -I$(top_srcdir) --c_out=$(top_builddir) $(top_srcdir)/protobuf-c/rift/rw_delta.proto
 
 pkgconfig_DATA += protobuf-c/libprotobuf-c.pc
 CLEANFILES += protobuf-c/libprotobuf-c.pc
@@ -189,8 +193,8 @@ dist-hook:
 
 install-data-hook:
 	$(MKDIR_P) $(DESTDIR)$(includedir)/google/protobuf-c
-	cd $(DESTDIR)$(includedir)/google/protobuf-c && rm -vf protobuf-c.h
-	cd $(DESTDIR)$(includedir)/google/protobuf-c && $(LN_S) ../../protobuf-c/protobuf-c.h protobuf-c.h
+	cd $(DESTDIR)$(includedir)/google/protobuf-c && rm -vf rift-protobuf-c.h
+	cd $(DESTDIR)$(includedir)/google/protobuf-c && $(LN_S) ../../protobuf-c/rift-protobuf-c.h rift-protobuf-c.h
 
 #
 # documentation

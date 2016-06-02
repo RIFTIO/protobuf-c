@@ -5,7 +5,7 @@
 
 int main()
 {
-  Foo__Person person = FOO__PERSON__INIT;
+  Foo__Person person = __FOO__PERSON__INTERNAL_INITIALIZER__;
   Foo__Person *person2;
   unsigned char simple_pad[8];
   size_t size, size2;
@@ -28,7 +28,7 @@ int main()
   assert (person2->id == 42);
   assert (strcmp (person2->name, "dave b") == 0);
 
-  foo__person__free_unpacked (person2, NULL);
+  foo__person__free_unpacked (NULL, person2);
   free (packed);
 
   printf ("test succeeded.\n");

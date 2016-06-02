@@ -133,6 +133,8 @@ bool CGenerator::Generate(const FileDescriptor* file,
   for (unsigned i = 0; i < options.size(); i++) {
     if (options[i].first == "dllexport_decl") {
       dllexport_decl = options[i].second;
+    } else if (options[i].first == "rift-enforce") {
+      setenv("RIFT_ENFORCEOPTS", options[i].second.c_str(), 1);
     } else {
       *error = "Unknown generator option: " + options[i].first;
       return false;
@@ -146,13 +148,13 @@ bool CGenerator::Generate(const FileDescriptor* file,
   basename.append(".pb-c");
 
   FileGenerator file_generator(file, dllexport_decl);
-
+  bool const generateGI = file_generator.rw_fileopts_.generate_gi;
   // Generate header.
   {
     scoped_ptr<io::ZeroCopyOutputStream> output(
       output_directory->Open(basename + ".h"));
     io::Printer printer(output.get(), '$');
-    file_generator.GenerateHeader(&printer);
+    file_generator.GenerateHeader(&printer, generateGI);
   }
 
   // Generate cc file.
@@ -160,7 +162,8 @@ bool CGenerator::Generate(const FileDescriptor* file,
     scoped_ptr<io::ZeroCopyOutputStream> output(
       output_directory->Open(basename + ".c"));
     io::Printer printer(output.get(), '$');
-    file_generator.GenerateSource(&printer);
+    file_generator.GenerateSource(&printer, generateGI);
+    
   }
 
   return true;

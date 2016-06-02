@@ -77,6 +77,11 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+struct rw_eopts_t {
+  string rw_yang_enum;
+  string rw_c_prefix;
+};
+
 class EnumGenerator {
  public:
   // See generator.cc for the meaning of dllexport_decl.
@@ -103,9 +108,21 @@ class EnumGenerator {
   // given the index of the value in the enum.
   void GenerateValueInitializer(io::Printer *printer, int index);
 
+  bool has_rw_yang_enum() const { return 0 != rw_eopts_.rw_yang_enum.length(); }
+
+  // Gi code generation functions.
+  string MakeGiName(const char *discriminator);
+  void GenerateGiHEnums(io::Printer* printer);
+  void GenerateGiCEnumDefs(io::Printer* printer);
+
+ private:
+
+  void get_riftopts();
+
  private:
   const EnumDescriptor* descriptor_;
   string dllexport_decl_;
+  rw_eopts_t rw_eopts_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EnumGenerator);
 };

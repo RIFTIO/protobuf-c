@@ -63,8 +63,11 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_C_FIELD_H__
 #define GOOGLE_PROTOBUF_COMPILER_C_FIELD_H__
 
+#include <string>
+#include <map>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/descriptor.h>
+
 
 namespace google {
 namespace protobuf {
@@ -73,13 +76,38 @@ namespace protobuf {
   }
 }
 
+struct riftfopts {
+  int enforce;
+  int ismsg;
+  int agg;
+  int flatinline;
+  uint32_t inline_max;
+  uint32_t string_max;
+  uint32_t rw_flags;
+  std::string c_type;
+  std::string merge_behave;
+
+  riftfopts()
+  : enforce(0),
+    ismsg(0),
+    agg(0),
+    flatinline(0),
+    inline_max(0),
+    string_max(0),
+    rw_flags(0)
+  {}
+};
+
 namespace protobuf {
 namespace compiler {
 namespace c {
 
 class FieldGenerator {
  public:
-  explicit FieldGenerator(const FieldDescriptor *descriptor) : descriptor_(descriptor) {}
+
+  explicit FieldGenerator(const FieldDescriptor *descriptor) : descriptor_(descriptor)  {
+    rift_parseopts(descriptor_);
+  }
   virtual ~FieldGenerator();
 
   // Generate definitions to be included in the structure.
@@ -92,9 +120,46 @@ class FieldGenerator {
   virtual void GenerateDefaultValueImplementations(io::Printer* printer) const { }
   virtual string GetDefaultValue() const = 0;
 
+  virtual bool isCType(void) const;
+
   // Generate members to initialize this field from a static initializer
   virtual void GenerateStaticInit(io::Printer* printer) const = 0;
 
+  virtual void AssignStructMembers(io::Printer* printer, int num) const = 0;
+
+  virtual string GetTypeName() const = 0;
+  virtual string GetPointerType() const = 0;
+
+  // Generate MetaData Macro for this field.
+  void GenerateMetaDataMacro(io::Printer* printer, unsigned index) const;
+
+  struct riftfopts riftopts;
+
+  void rift_parseopts(const FieldDescriptor *descriptor_);
+
+  // Gi code generation support functions.
+  virtual string GetGiTypeName(bool use_const = true) const = 0;
+  string GetParentGiCIdentifier(const char *operation, const string& field) const;
+  string GetParentGiCIdentifier(const char *operation) const;
+  string GetGiCIdentifier(const char *operation) const;
+
+  // pure virtual functions.
+  virtual string GetGiReturnAnnotations() const = 0;
+  virtual string GetGiGetterReturnType() const = 0;
+  virtual string GetGiGetterParameterList() const = 0;
+  virtual string GetGiSetterAnnotations() const = 0;
+  virtual string GetGiSetterParameterList() const = 0;
+  virtual void GenerateGiCGetterMethod(io::Printer* printer) const = 0;
+  virtual void GenerateGiCSetterMethod(io::Printer* printer) const = 0;
+
+  string GetGiBoxedFieldName() const;
+  string GetQuantifierField() const;
+  bool HasQuantifierField() const;
+  void GenerateGiHSupportMethodDecls(io::Printer* printer) const;
+  void GenerateGiCSupportMethodDefs(io::Printer* printer) const;
+  virtual void GenerateGiCreateMethod(io::Printer* printer) const { };
+  virtual string GetGiCreateParameterList() const { };
+  virtual bool HasLengthOut() const;
 
  protected:
   void GenerateDescriptorInitializerGeneric(io::Printer* printer,
@@ -104,6 +169,7 @@ class FieldGenerator {
   const FieldDescriptor *descriptor_;
 
  private:
+
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FieldGenerator);
 };
 

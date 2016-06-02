@@ -167,6 +167,16 @@ string GlobalBuildDescriptorsName(const string& filename);
 // return 'required', 'optional', or 'repeated'
 string GetLabelName(FieldDescriptor::Label label);
 
+string FullNameToGICBase(const string &full_name);
+
+string MangleNameToUpper(const string& src);
+string MangleNameToCamel(const string &name);
+
+struct RiftMopts; // forward declaration.
+string FullNameToGI(const Descriptor* descriptor, const RiftMopts *mopts = NULL);
+string FullNameToGIType(const Descriptor* descriptor, const RiftMopts *mopts = NULL);
+
+
 
 // write IntRanges entries for a bunch of sorted values.
 // returns the number of ranges there are to bsearch.

@@ -74,7 +74,7 @@ test_compare_pack_methods (ProtobufCMessage *message,
   assert (siz1 == siz2);
   assert (bs.len == siz1);
   assert (memcmp (bs.data, packed1, siz1) == 0);
-  rv = protobuf_c_message_unpack (message->descriptor, NULL, siz1, packed1);
+  rv = protobuf_c_message_unpack (NULL, message->descriptor, siz1, packed1);
   assert (rv != NULL);
   PROTOBUF_C_BUFFER_SIMPLE_CLEAR (&bs);
   *packed_len_out = siz1;
@@ -115,14 +115,14 @@ static void test_enum_small (void)
 
 #define DO_TEST(UC_VALUE) \
   do{ \
-    Foo__TestMessRequiredEnumSmall small = FOO__TEST_MESS_REQUIRED_ENUM_SMALL__INIT; \
+    Foo__TestMessRequiredEnumSmall small = __FOO__TEST_MESS_REQUIRED_ENUM_SMALL__INTERNAL_INITIALIZER__; \
     size_t len; \
     uint8_t *data; \
     Foo__TestMessRequiredEnumSmall *unpacked; \
-    small.test = FOO__TEST_ENUM_SMALL__##UC_VALUE; \
+    small.test = UC_VALUE; \
     unpacked = test_compare_pack_methods ((ProtobufCMessage*)&small, &len, &data); \
-    assert (unpacked->test == FOO__TEST_ENUM_SMALL__##UC_VALUE); \
-    foo__test_mess_required_enum_small__free_unpacked (unpacked, NULL); \
+    assert (unpacked->test == UC_VALUE); \
+    foo__test_mess_required_enum_small__free_unpacked (NULL, unpacked); \
     TEST_VERSUS_STATIC_ARRAY (len, data, test_enum_small_##UC_VALUE); \
     free (data); \
   }while(0)
@@ -137,7 +137,7 @@ static void test_enum_small (void)
 
 static void test_enum_big (void)
 {
-  Foo__TestMessRequiredEnum big = FOO__TEST_MESS_REQUIRED_ENUM__INIT;
+  Foo__TestMessRequiredEnum big = __FOO__TEST_MESS_REQUIRED_ENUM__INTERNAL_INITIALIZER__;
   size_t len;
   uint8_t *data;
   Foo__TestMessRequiredEnum *unpacked;
@@ -146,10 +146,10 @@ static void test_enum_big (void)
 
 #define DO_ONE_TEST(shortname, numeric_value, encoded_len) \
   do{ \
-    big.test = FOO__TEST_ENUM__##shortname; \
+    big.test = shortname; \
     unpacked = test_compare_pack_methods ((ProtobufCMessage*)&big, &len, &data); \
-    assert (unpacked->test == FOO__TEST_ENUM__##shortname); \
-    foo__test_mess_required_enum__free_unpacked (unpacked, NULL); \
+    assert (unpacked->test == shortname); \
+    foo__test_mess_required_enum__free_unpacked (NULL, unpacked); \
     TEST_VERSUS_STATIC_ARRAY (len, data, test_enum_big_##shortname); \
     assert (encoded_len + 1 == len); \
     assert (big.test == numeric_value); \
@@ -175,7 +175,7 @@ static void test_field_numbers (void)
 
 #define DO_ONE_TEST(num, exp_len) \
   { \
-    Foo__TestFieldNo##num t = FOO__TEST_FIELD_NO##num##__INIT; \
+    Foo__TestFieldNo##num t = __FOO__TEST_FIELD_NO##num##__INTERNAL_INITIALIZER__; \
     Foo__TestFieldNo##num *t2; \
     t.test = "tst"; \
     t2 = test_compare_pack_methods ((ProtobufCMessage*)(&t), &len, &data); \
@@ -183,7 +183,7 @@ static void test_field_numbers (void)
     TEST_VERSUS_STATIC_ARRAY (len, data, test_field_number_##num); \
     assert (len == exp_len); \
     free (data); \
-    foo__test_field_no##num##__free_unpacked (t2, NULL); \
+    foo__test_field_no##num##__free_unpacked (NULL, t2); \
   }
   DO_ONE_TEST (15, 1 + 1 + 3);
   DO_ONE_TEST (16, 2 + 1 + 3);
@@ -200,14 +200,14 @@ static void test_field_numbers (void)
 
 #define DO_TEST_REQUIRED(Type, TYPE, type, value, example_packed_data, equal_func) \
   do{ \
-  Foo__TestMessRequired##Type opt = FOO__TEST_MESS_REQUIRED_##TYPE##__INIT; \
+  Foo__TestMessRequired##Type opt = __FOO__TEST_MESS_REQUIRED_##TYPE##__INTERNAL_INITIALIZER__; \
   Foo__TestMessRequired##Type *mess; \
   size_t len; uint8_t *data; \
   opt.test = value; \
   mess = test_compare_pack_methods (&opt.base, &len, &data); \
   TEST_VERSUS_STATIC_ARRAY (len, data, example_packed_data); \
   assert (equal_func (mess->test, value)); \
-  foo__test_mess_required_##type##__free_unpacked (mess, NULL); \
+  foo__test_mess_required_##type##__free_unpacked (NULL, mess); \
   free (data); \
   }while(0)
 static void test_required_int32 (void)
@@ -362,8 +362,8 @@ static void test_required_TestEnumSmall (void)
 {
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_REQUIRED(EnumSmall, ENUM_SMALL, enum_small, value, example_packed_data, NUMERIC_EQUALS)
-  DO_TEST(FOO__TEST_ENUM_SMALL__VALUE, test_required_enum_small_VALUE);
-  DO_TEST(FOO__TEST_ENUM_SMALL__OTHER_VALUE, test_required_enum_small_OTHER_VALUE);
+  DO_TEST(VALUE, test_required_enum_small_VALUE);
+  DO_TEST(OTHER_VALUE, test_required_enum_small_OTHER_VALUE);
 #undef DO_TEST
 }
 
@@ -372,16 +372,16 @@ static void test_required_TestEnum (void)
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_REQUIRED(Enum, ENUM, enum, value, example_packed_data, NUMERIC_EQUALS)
 
-  DO_TEST (FOO__TEST_ENUM__VALUE0, test_required_enum_0);
-  DO_TEST (FOO__TEST_ENUM__VALUE1, test_required_enum_1);
-  DO_TEST (FOO__TEST_ENUM__VALUE127, test_required_enum_127);
-  DO_TEST (FOO__TEST_ENUM__VALUE128, test_required_enum_128);
-  DO_TEST (FOO__TEST_ENUM__VALUE16383, test_required_enum_16383);
-  DO_TEST (FOO__TEST_ENUM__VALUE16384, test_required_enum_16384);
-  DO_TEST (FOO__TEST_ENUM__VALUE2097151, test_required_enum_2097151);
-  DO_TEST (FOO__TEST_ENUM__VALUE2097152, test_required_enum_2097152);
-  DO_TEST (FOO__TEST_ENUM__VALUE268435455, test_required_enum_268435455);
-  DO_TEST (FOO__TEST_ENUM__VALUE268435456, test_required_enum_268435456);
+  DO_TEST (VALUE0, test_required_enum_0);
+  DO_TEST (VALUE1, test_required_enum_1);
+  DO_TEST (VALUE127, test_required_enum_127);
+  DO_TEST (VALUE128, test_required_enum_128);
+  DO_TEST (VALUE16383, test_required_enum_16383);
+  DO_TEST (VALUE16384, test_required_enum_16384);
+  DO_TEST (VALUE2097151, test_required_enum_2097151);
+  DO_TEST (VALUE2097152, test_required_enum_2097152);
+  DO_TEST (VALUE268435455, test_required_enum_268435455);
+  DO_TEST (VALUE268435456, test_required_enum_268435456);
 
 #undef DO_TEST
 }
@@ -413,7 +413,7 @@ static void test_required_bytes (void)
 
 static void test_required_SubMess (void)
 {
-  Foo__SubMess submess = FOO__SUB_MESS__INIT;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_REQUIRED (Message, MESSAGE, message, value, example_packed_data, submesses_equals)
   submess.test = 0;
@@ -426,19 +426,19 @@ static void test_required_SubMess (void)
 /* === Optional type fields === */
 static void test_empty_optional (void)
 {
-  Foo__TestMessOptional mess = FOO__TEST_MESS_OPTIONAL__INIT;
+  Foo__TestMessOptional mess = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__;
   size_t len;
   uint8_t *data;
   Foo__TestMessOptional *mess2 = test_compare_pack_methods (&mess.base, &len, &data);
   assert (len == 0);
   free (data);
-  foo__test_mess_optional__free_unpacked (mess2, NULL);
+  foo__test_mess_optional__free_unpacked (NULL, mess2);
 }
 
 
 #define DO_TEST_OPTIONAL(base_member, value, example_packed_data, equal_func) \
   do{ \
-  Foo__TestMessOptional opt = FOO__TEST_MESS_OPTIONAL__INIT; \
+  Foo__TestMessOptional opt = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__; \
   Foo__TestMessOptional *mess; \
   size_t len; uint8_t *data; \
   opt.has_##base_member = 1; \
@@ -447,7 +447,7 @@ static void test_empty_optional (void)
   TEST_VERSUS_STATIC_ARRAY (len, data, example_packed_data); \
   assert (mess->has_##base_member); \
   assert (equal_func (mess->base_member, value)); \
-  foo__test_mess_optional__free_unpacked (mess, NULL); \
+  foo__test_mess_optional__free_unpacked (NULL, mess); \
   free (data); \
   }while(0)
 
@@ -627,23 +627,23 @@ static void test_optional_TestEnum (void)
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_OPTIONAL(test_enum, value, example_packed_data, NUMERIC_EQUALS)
 
-  DO_TEST (FOO__TEST_ENUM__VALUE0, test_optional_enum_0);
-  DO_TEST (FOO__TEST_ENUM__VALUE1, test_optional_enum_1);
-  DO_TEST (FOO__TEST_ENUM__VALUE127, test_optional_enum_127);
-  DO_TEST (FOO__TEST_ENUM__VALUE128, test_optional_enum_128);
-  DO_TEST (FOO__TEST_ENUM__VALUE16383, test_optional_enum_16383);
-  DO_TEST (FOO__TEST_ENUM__VALUE16384, test_optional_enum_16384);
-  DO_TEST (FOO__TEST_ENUM__VALUE2097151, test_optional_enum_2097151);
-  DO_TEST (FOO__TEST_ENUM__VALUE2097152, test_optional_enum_2097152);
-  DO_TEST (FOO__TEST_ENUM__VALUE268435455, test_optional_enum_268435455);
-  DO_TEST (FOO__TEST_ENUM__VALUE268435456, test_optional_enum_268435456);
+  DO_TEST (VALUE0, test_optional_enum_0);
+  DO_TEST (VALUE1, test_optional_enum_1);
+  DO_TEST (VALUE127, test_optional_enum_127);
+  DO_TEST (VALUE128, test_optional_enum_128);
+  DO_TEST (VALUE16383, test_optional_enum_16383);
+  DO_TEST (VALUE16384, test_optional_enum_16384);
+  DO_TEST (VALUE2097151, test_optional_enum_2097151);
+  DO_TEST (VALUE2097152, test_optional_enum_2097152);
+  DO_TEST (VALUE268435455, test_optional_enum_268435455);
+  DO_TEST (VALUE268435456, test_optional_enum_268435456);
 
 #undef DO_TEST
 }
 
 #define DO_TEST_OPTIONAL__NO_HAS(base_member, value, example_packed_data, equal_func) \
   do{ \
-  Foo__TestMessOptional opt = FOO__TEST_MESS_OPTIONAL__INIT; \
+  Foo__TestMessOptional opt = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__; \
   Foo__TestMessOptional *mess; \
   size_t len; uint8_t *data; \
   opt.base_member = value; \
@@ -651,7 +651,7 @@ static void test_optional_TestEnum (void)
   TEST_VERSUS_STATIC_ARRAY (len, data, example_packed_data); \
   assert (mess->base_member != NULL); \
   assert (equal_func (mess->base_member, value)); \
-  foo__test_mess_optional__free_unpacked (mess, NULL); \
+  foo__test_mess_optional__free_unpacked (NULL, mess); \
   free (data); \
   }while(0)
 
@@ -677,7 +677,7 @@ static void test_optional_bytes (void)
 }
 static void test_optional_SubMess (void)
 {
-  Foo__SubMess submess = FOO__SUB_MESS__INIT;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_OPTIONAL__NO_HAS (test_message, value, example_packed_data, submesses_equals)
   submess.test = 0;
@@ -690,13 +690,13 @@ static void test_optional_SubMess (void)
 /* === Oneof type fields === */
 static void test_empty_oneof (void)
 {
-  Foo__TestMessOneof mess = FOO__TEST_MESS_ONEOF__INIT;
+  Foo__TestMessOneof mess = __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__;
   size_t len;
   uint8_t *data;
   Foo__TestMessOneof *mess2 = test_compare_pack_methods (&mess.base, &len, &data);
   assert (len == 0);
   free (data);
-  foo__test_mess_oneof__free_unpacked (mess2, NULL);
+  foo__test_mess_oneof__free_unpacked (NULL, mess2);
 }
 
 #define DO_TEST_GENERIC_ONEOF(type, init, free_unpacked, case_member, case_enum, member, value, example_packed_data, assign, equal_func, result_check) \
@@ -711,13 +711,13 @@ static void test_empty_oneof (void)
   assert (mess->case_member == case_enum); \
   result_check(mess->member); \
   assert (equal_func (mess->member, value)); \
-  free_unpacked (mess, NULL); \
+  free_unpacked (NULL, mess); \
   free (data); \
   }while(0)
 
 #define DO_TEST_ONEOF(member, MEMBER, value, example_packed_data, assign, equal_func) \
   DO_TEST_GENERIC_ONEOF(Foo__TestMessOneof, \
-                FOO__TEST_MESS_ONEOF__INIT, \
+                __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__, \
                 foo__test_mess_oneof__free_unpacked, \
                 test_oneof_case, \
                 FOO__TEST_MESS_ONEOF__TEST_ONEOF_##MEMBER, \
@@ -726,7 +726,7 @@ static void test_empty_oneof (void)
 
 #define DO_TEST_ONEOF_REF_VAL(member, MEMBER, value, example_packed_data, assign, equal_func) \
   DO_TEST_GENERIC_ONEOF(Foo__TestMessOneof, \
-                FOO__TEST_MESS_ONEOF__INIT, \
+                __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__, \
                 foo__test_mess_oneof__free_unpacked, \
                 test_oneof_case, \
                 FOO__TEST_MESS_ONEOF__TEST_ONEOF_##MEMBER, \
@@ -908,16 +908,16 @@ static void test_oneof_TestEnum (void)
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_ONEOF(test_enum, TEST_ENUM, value, example_packed_data, GENERIC_ASSIGN, NUMERIC_EQUALS)
 
-  DO_TEST (FOO__TEST_ENUM__VALUE0, test_optional_enum_0);
-  DO_TEST (FOO__TEST_ENUM__VALUE1, test_optional_enum_1);
-  DO_TEST (FOO__TEST_ENUM__VALUE127, test_optional_enum_127);
-  DO_TEST (FOO__TEST_ENUM__VALUE128, test_optional_enum_128);
-  DO_TEST (FOO__TEST_ENUM__VALUE16383, test_optional_enum_16383);
-  DO_TEST (FOO__TEST_ENUM__VALUE16384, test_optional_enum_16384);
-  DO_TEST (FOO__TEST_ENUM__VALUE2097151, test_optional_enum_2097151);
-  DO_TEST (FOO__TEST_ENUM__VALUE2097152, test_optional_enum_2097152);
-  DO_TEST (FOO__TEST_ENUM__VALUE268435455, test_optional_enum_268435455);
-  DO_TEST (FOO__TEST_ENUM__VALUE268435456, test_optional_enum_268435456);
+  DO_TEST (VALUE0, test_optional_enum_0);
+  DO_TEST (VALUE1, test_optional_enum_1);
+  DO_TEST (VALUE127, test_optional_enum_127);
+  DO_TEST (VALUE128, test_optional_enum_128);
+  DO_TEST (VALUE16383, test_optional_enum_16383);
+  DO_TEST (VALUE16384, test_optional_enum_16384);
+  DO_TEST (VALUE2097151, test_optional_enum_2097151);
+  DO_TEST (VALUE2097152, test_optional_enum_2097152);
+  DO_TEST (VALUE268435455, test_optional_enum_268435455);
+  DO_TEST (VALUE268435456, test_optional_enum_268435456);
 
 #undef DO_TEST
 }
@@ -944,7 +944,7 @@ static void test_oneof_bytes (void)
 }
 static void test_oneof_SubMess (void)
 {
-  Foo__SubMess submess = FOO__SUB_MESS__INIT;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_ONEOF_REF_VAL (test_message, TEST_MESSAGE, value, example_packed_data, GENERIC_ASSIGN, submesses_equals)
   submess.test = 0;
@@ -961,14 +961,14 @@ static void test_oneof_merge (void)
   assert (msg); \
   assert (msg->test_oneof_case == FOO__TEST_MESS_ONEOF__TEST_ONEOF_##MEMBER); \
   assert (equals_func (msg->member, value)); \
-  foo__test_mess_oneof__free_unpacked (msg, NULL);
+  foo__test_mess_oneof__free_unpacked (NULL, msg);
 
   DO_TEST (444455555, test_double, TEST_DOUBLE, NUMERIC_EQUALS, test_oneof_merge_double);
   DO_TEST (333, test_float, TEST_FLOAT, NUMERIC_EQUALS, test_oneof_merge_float);
   DO_TEST (666, test_int32, TEST_INT32, NUMERIC_EQUALS, test_oneof_merge_int32);
   DO_TEST ("", test_string, TEST_STRING, STRING_EQUALS, test_oneof_merge_string);
 
-  Foo__SubMess submess = FOO__SUB_MESS__INIT;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
   submess.test = 42;
   DO_TEST (&submess, test_message, TEST_MESSAGE, submesses_equals, test_oneof_merge_submess);
 
@@ -982,7 +982,7 @@ static void test_oneof_merge (void)
                          static_array, example_packed_data, \
                          equals_macro) \
   do{ \
-  Foo__TestMess mess = FOO__TEST_MESS__INIT; \
+  Foo__TestMess mess = __FOO__TEST_MESS__INTERNAL_INITIALIZER__; \
   Foo__TestMess *mess2; \
   size_t len; \
   uint8_t *data; \
@@ -995,18 +995,18 @@ static void test_oneof_merge (void)
     assert(equals_macro(mess2->lc_member_name[i], static_array[i])); \
   TEST_VERSUS_STATIC_ARRAY (len, data, example_packed_data); \
   free (data); \
-  foo__test_mess__free_unpacked (mess2, NULL); \
+  foo__test_mess__free_unpacked (NULL, mess2); \
   }while(0)
 
 static void test_empty_repeated (void)
 {
-  Foo__TestMess mess = FOO__TEST_MESS__INIT;
+  Foo__TestMess mess = __FOO__TEST_MESS__INTERNAL_INITIALIZER__;
   size_t len;
   uint8_t *data;
   Foo__TestMess *mess2 = test_compare_pack_methods (&mess.base, &len, &data);
   assert (len == 0);
   free (data);
-  foo__test_mess__free_unpacked (mess2, NULL);
+  foo__test_mess__free_unpacked (NULL, mess2);
 }
 
 static void test_repeated_int32 (void)
@@ -1252,9 +1252,9 @@ static void test_repeated_bytes (void)
 
 static void test_repeated_SubMess (void)
 {
-  static Foo__SubMess submess0 = FOO__SUB_MESS__INIT;
-  static Foo__SubMess submess1 = FOO__SUB_MESS__INIT;
-  static Foo__SubMess submess2 = FOO__SUB_MESS__INIT;
+  static Foo__SubMess submess0 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  static Foo__SubMess submess1 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  static Foo__SubMess submess2 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
   static Foo__SubMess *submesses[3] = { &submess0, &submess1, &submess2 };
 
 #define DO_TEST(static_array, example_packed_data) \
@@ -1275,7 +1275,7 @@ static void test_repeated_SubMess (void)
                          static_array, example_packed_data, \
                          equals_macro) \
   do{ \
-  Foo__TestMessPacked mess = FOO__TEST_MESS_PACKED__INIT; \
+  Foo__TestMessPacked mess = __FOO__TEST_MESS_PACKED__INTERNAL_INITIALIZER__; \
   Foo__TestMessPacked *mess2; \
   size_t len; \
   uint8_t *data; \
@@ -1288,7 +1288,7 @@ static void test_repeated_SubMess (void)
   for (i = 0; i < N_ELEMENTS (static_array); i++) \
     assert(equals_macro(mess2->lc_member_name[i], static_array[i])); \
   free (data); \
-  foo__test_mess_packed__free_unpacked (mess2, NULL); \
+  foo__test_mess_packed__free_unpacked (NULL, mess2); \
   }while(0)
 
 static void test_packed_repeated_int32 (void)
@@ -1502,7 +1502,7 @@ static void test_packed_repeated_TestEnum (void)
 
 static void test_unknown_fields (void)
 {
-  static Foo__EmptyMess mess = FOO__EMPTY_MESS__INIT;
+  static Foo__EmptyMess mess = __FOO__EMPTY_MESS__INTERNAL_INITIALIZER__;
   static Foo__EmptyMess *mess2;
   ProtobufCMessageUnknownField fields[2];
   size_t len; uint8_t *data;
@@ -1530,7 +1530,7 @@ static void test_unknown_fields (void)
   assert (memcmp (mess2->base.unknown_fields[1].data, fields[1].data, 4) == 0);
   TEST_VERSUS_STATIC_ARRAY (len, data, test_unknown_fields_0);
   free (data);
-  foo__empty_mess__free_unpacked (mess2, NULL);
+  foo__empty_mess__free_unpacked (NULL, mess2);
 
   fields[0].tag = 6666;
   fields[0].wire_type = PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED;
@@ -1552,7 +1552,7 @@ static void test_unknown_fields (void)
   assert (memcmp (mess2->base.unknown_fields[1].data, fields[1].data, 8) == 0);
   TEST_VERSUS_STATIC_ARRAY (len, data, test_unknown_fields_1);
   free (data);
-  foo__empty_mess__free_unpacked (mess2, NULL);
+  foo__empty_mess__free_unpacked (NULL, mess2);
 }
 
 static void
@@ -1596,7 +1596,7 @@ test_enum_lookups (void)
   test_enum_descriptor (&foo__test_enum_dup_values__descriptor);
 #define TEST_ENUM_DUP_VALUES(str, shortname) \
   test_enum_by_name (&foo__test_enum_dup_values__descriptor,  \
-                     str, FOO__TEST_ENUM_DUP_VALUES__##shortname)
+                     str, shortname)
   TEST_ENUM_DUP_VALUES ("VALUE_A", VALUE_A);
   TEST_ENUM_DUP_VALUES ("VALUE_B", VALUE_B);
   TEST_ENUM_DUP_VALUES ("VALUE_C", VALUE_C);
@@ -1653,14 +1653,14 @@ assert_required_default_values_are_default (Foo__DefaultRequiredValues *mess)
 static void
 test_required_default_values (void)
 {
-  Foo__DefaultRequiredValues mess = FOO__DEFAULT_REQUIRED_VALUES__INIT;
+  Foo__DefaultRequiredValues mess = __FOO__DEFAULT_REQUIRED_VALUES__INTERNAL_INITIALIZER__;
   Foo__DefaultRequiredValues *mess2;
   size_t len; uint8_t *data;
   assert_required_default_values_are_default (&mess);
   mess2 = test_compare_pack_methods (&mess.base, &len, &data);
   free (data);
   assert_required_default_values_are_default (mess2);
-  foo__default_required_values__free_unpacked (mess2, NULL);
+  foo__default_required_values__free_unpacked (NULL, mess2);
 }
 
 static void
@@ -1691,7 +1691,7 @@ assert_optional_default_values_are_default (Foo__DefaultOptionalValues *mess)
 static void
 test_optional_default_values (void)
 {
-  Foo__DefaultOptionalValues mess = FOO__DEFAULT_OPTIONAL_VALUES__INIT;
+  Foo__DefaultOptionalValues mess = __FOO__DEFAULT_OPTIONAL_VALUES__INTERNAL_INITIALIZER__;
   Foo__DefaultOptionalValues *mess2;
   size_t len; uint8_t *data;
   assert_optional_default_values_are_default (&mess);
@@ -1699,7 +1699,7 @@ test_optional_default_values (void)
   assert (len == 0);            /* no non-default values */
   free (data);
   assert_optional_default_values_are_default (mess2);
-  foo__default_optional_values__free_unpacked (mess2, NULL);
+  foo__default_optional_values__free_unpacked (NULL, mess2);
 }
 
 static void
@@ -1712,7 +1712,7 @@ assert_optional_lowercase_enum_default_value_is_default (Foo__LowerCase *mess)
 static void
 test_optional_lowercase_enum_default_value (void)
 {
-  Foo__LowerCase mess = FOO__LOWER_CASE__INIT;
+  Foo__LowerCase mess = __FOO__LOWER_CASE__INTERNAL_INITIALIZER__;
   Foo__LowerCase *mess2;
   size_t len; uint8_t *data;
   assert_optional_lowercase_enum_default_value_is_default (&mess);
@@ -1720,15 +1720,15 @@ test_optional_lowercase_enum_default_value (void)
   assert (len == 0);            /* no non-default values */
   free (data);
   assert_optional_lowercase_enum_default_value_is_default (mess2);
-  foo__lower_case__free_unpacked (mess2, NULL);
+  foo__lower_case__free_unpacked (NULL, mess2);
 }
 
 static void
 test_field_merge (void)
 {
-   Foo__TestMessOptional msg1 = FOO__TEST_MESS_OPTIONAL__INIT;
-   Foo__SubMess sub1 = FOO__SUB_MESS__INIT;
-   Foo__SubMess__SubSubMess subsub1 = FOO__SUB_MESS__SUB_SUB_MESS__INIT;
+   Foo__TestMessOptional msg1 = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__;
+   Foo__SubMess sub1 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+   Foo__SubMess__SubSubMess subsub1 = __FOO__SUB_MESS__SUB_SUB_MESS__INTERNAL_INITIALIZER__;
 
    msg1.has_test_int32 = 1;
    msg1.test_int32 = 12345;
@@ -1753,14 +1753,14 @@ test_field_merge (void)
 
    size_t msg_size = foo__test_mess_optional__get_packed_size (&msg1);
 
-   Foo__TestMessOptional msg2 = FOO__TEST_MESS_OPTIONAL__INIT;
-   Foo__SubMess sub2 = FOO__SUB_MESS__INIT;
-   Foo__SubMess__SubSubMess subsub2 = FOO__SUB_MESS__SUB_SUB_MESS__INIT;
+   Foo__TestMessOptional msg2 = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__;
+   Foo__SubMess sub2 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+   Foo__SubMess__SubSubMess subsub2 = __FOO__SUB_MESS__SUB_SUB_MESS__INTERNAL_INITIALIZER__;
 
    msg2.has_test_int64 = 1;
    msg2.test_int64 = 2;
    msg2.has_test_enum = 1;
-   msg2.test_enum = FOO__TEST_ENUM__VALUE128;
+   msg2.test_enum = VALUE128;
    msg2.test_string = "456";
    msg2.test_message = &sub2;
    sub2.has_val2 = 1;
@@ -1807,7 +1807,7 @@ test_field_merge (void)
          && merged->test_message->sub2->val1 == subsub1.val1);
 
    free (packed_buffer);
-   foo__test_mess_optional__free_unpacked (merged, NULL);
+   foo__test_mess_optional__free_unpacked (NULL, merged);
 }
 
 static void
@@ -1827,7 +1827,7 @@ test_submessage_merge (void)
    assert (size == sizeof (test_submess_merged1));
    assert (memcmp (packed, test_submess_merged1, size) == 0);
 
-   foo__test_mess_sub_mess__free_unpacked (merged, NULL);
+   foo__test_mess_sub_mess__free_unpacked (NULL, merged);
    free (packed);
 
    merged = foo__test_mess_sub_mess__unpack
@@ -1840,7 +1840,7 @@ test_submessage_merge (void)
    assert (size == sizeof (test_submess_merged2));
    assert (memcmp (packed, test_submess_merged2, size) == 0);
    
-   foo__test_mess_sub_mess__free_unpacked (merged, NULL);
+   foo__test_mess_sub_mess__free_unpacked (NULL, merged);
    free (packed);
 }
 
@@ -1849,9 +1849,9 @@ static struct alloc_data {
   int32_t allocs_left;
 } test_allocator_data;
 
-static void *test_alloc(void *allocator_data, size_t size)
+static void *test_alloc(ProtobufCInstance *allocator_data, size_t size)
 {
-  struct alloc_data *ad = allocator_data;
+  struct alloc_data *ad = allocator_data->data;
   void *rv = NULL;
   if (ad->allocs_left-- > 0)
       rv = malloc (size);
@@ -1861,26 +1861,29 @@ static void *test_alloc(void *allocator_data, size_t size)
   return rv;
 }
 
-static void test_free (void *allocator_data, void *data)
+static void test_free (ProtobufCInstance *allocator_data, void *data)
 {
-  struct alloc_data *ad = allocator_data;
+  struct alloc_data *ad = allocator_data->data;
   /* fprintf (stderr, "free %p\n", data); */
   free (data);
   if (data)
     ad->alloc_count--;
 }
 
-static ProtobufCAllocator test_allocator = {
-  .alloc = test_alloc,
-  .free = test_free,
-  .allocator_data = &test_allocator_data,
+static ProtobufCInstance test_allocator = {
+	.alloc = test_alloc,
+	.zalloc = NULL,
+	.realloc = NULL,
+	.free = test_free,
+	.error = NULL,
+	.data = &test_allocator_data,
 };
 
 #define SETUP_TEST_ALLOC_BUFFER(pbuf, len)					\
   uint8_t bytes[] = "some bytes", *pbuf;						\
   size_t len, _len2;                                        \
-  Foo__DefaultRequiredValues _req = FOO__DEFAULT_REQUIRED_VALUES__INIT;		\
-  Foo__AllocValues _mess = FOO__ALLOC_VALUES__INIT;				\
+  Foo__DefaultRequiredValues _req = __FOO__DEFAULT_REQUIRED_VALUES__INTERNAL_INITIALIZER__;		\
+  Foo__AllocValues _mess = __FOO__ALLOC_VALUES__INTERNAL_INITIALIZER__;				\
   _mess.a_string = "some string";						\
   _mess.r_string = repeated_strings_2;						\
   _mess.n_r_string = sizeof(repeated_strings_2) / sizeof(*repeated_strings_2);	\
@@ -1902,7 +1905,7 @@ test_alloc_graceful_cleanup (uint8_t *packed, size_t len, int good_allocs)
   mess = foo__alloc_values__unpack (&test_allocator, len, packed);
   assert (test_allocator_data.allocs_left < 0 ? !mess : !!mess);
   if (mess)
-    foo__alloc_values__free_unpacked (mess, &test_allocator);
+    foo__alloc_values__free_unpacked (&test_allocator, mess);
   assert (0 == test_allocator_data.alloc_count);
 }
 
@@ -1981,9 +1984,9 @@ test_field_flags (void)
 static void
 test_message_check(void)
 {
-  Foo__TestMessageCheck__SubMessage sm = FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INIT;
-  Foo__TestMessageCheck__SubMessage sm2 = FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INIT;
-  Foo__TestMessageCheck m = FOO__TEST_MESSAGE_CHECK__INIT;
+  Foo__TestMessageCheck__SubMessage sm = __FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INTERNAL_INITIALIZER__;
+  Foo__TestMessageCheck__SubMessage sm2 = __FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INTERNAL_INITIALIZER__;
+  Foo__TestMessageCheck m = __FOO__TEST_MESSAGE_CHECK__INTERNAL_INITIALIZER__;
   char *null = NULL;
   char *str = "";
   Foo__TestMessageCheck__SubMessage *sm_p;

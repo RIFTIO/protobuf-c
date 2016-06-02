@@ -84,6 +84,19 @@ class StringFieldGenerator : public FieldGenerator {
   void GenerateDefaultValueImplementations(io::Printer* printer) const;
   string GetDefaultValue(void) const;
   void GenerateStaticInit(io::Printer* printer) const;
+  void AssignStructMembers(io::Printer* printer, int num) const;
+  string GetTypeName() const;
+  string GetPointerType() const;
+
+  // GI related functions
+  string GetGiTypeName(bool use_const = true) const;
+  string GetGiReturnAnnotations() const;
+  string GetGiGetterReturnType() const;
+  string GetGiGetterParameterList() const;
+  string GetGiSetterAnnotations() const;
+  string GetGiSetterParameterList() const;
+  void GenerateGiCGetterMethod(io::Printer* printer) const;
+  void GenerateGiCSetterMethod(io::Printer* printer) const;
 
  private:
   map<string, string> variables_;

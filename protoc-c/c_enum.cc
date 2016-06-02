@@ -60,6 +60,8 @@
 
 // Modified to implement C code by Dave Benson.
 
+#include <stdio.h>
+
 #include <set>
 #include <map>
 
@@ -67,15 +69,90 @@
 #include <protoc-c/c_helpers.h>
 #include <google/protobuf/io/printer.h>
 
+#if 0
+#define RIFTDBG(arg1) fprintf(stderr, arg1...)
+#else
+#define RIFTDBG(arg1...)
+#endif
+
+
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace c {
 
+void get_enum_riftopts(const EnumDescriptor* descriptor, rw_eopts_t *rw_eopts) {
+  EnumOptions mopts(descriptor->options());
+  UnknownFieldSet *unks = mopts.mutable_unknown_fields();
+
+  if (!unks->empty()) {
+    RIFTDBG("+++ enum descriptor '%s' has %d extension options\n", 
+             descriptor->full_name().c_str(), unks->field_count());
+
+    for (int i=0; i<unks->field_count(); i++) {
+      UnknownField *unkf = unks->mutable_field(i);
+      RIFTDBG("+++ ext opt field number %d type %d\n", (int)unkf->number(), (int)unkf->type());
+      switch (unkf->number()) {
+      case 50004:
+        if (UnknownField::TYPE_LENGTH_DELIMITED == unkf->type()) {
+          RIFTDBG("+++ enum descriptor with rw_enumopts of type_length_delimited!!\n");
+          RIFTDBG("  buf len=%d: ", unkf->length_delimited().length());
+          for (int k=0; k<unkf->length_delimited().length(); k++) {
+            RIFTDBG("%0X ", (uint32_t) *(const char*)unkf->length_delimited().substr(k, 1).c_str());
+          }
+          RIFTDBG("\n");
+          UnknownFieldSet ropts;
+          if (ropts.ParseFromString(unkf->length_delimited())) {
+            for (int j=0; j<ropts.field_count(); j++) {
+              UnknownField *ropt = ropts.mutable_field(j);
+              switch (ropt->number()) {
+                case 1:
+                  if (ropt->type() == UnknownField::TYPE_LENGTH_DELIMITED) {
+                    rw_eopts->rw_c_prefix = ropt->length_delimited();
+                  } else {
+                    RIFTDBG("+++ enum '%s' has incorrect data type for RwEnumOptions.c_prefix %d: %d\n",
+                             descriptor->full_name().c_str(), ropt->number(), (int)ropt->type());
+                  }
+                  break;
+
+                case 2:
+                  if (ropt->type() == UnknownField::TYPE_LENGTH_DELIMITED) {
+                    rw_eopts->rw_yang_enum = ropt->length_delimited();
+                  } else {
+                    RIFTDBG("+++ enum '%s' has incorrect data type for RwEnumOptions.ypbc_enum option %d: %d\n",
+                             descriptor->full_name().c_str(), ropt->number(), (int)ropt->type());
+                  }
+                  break;
+
+                default:
+                  fprintf(stderr, "+++ enum '%s' has unknown RwEnumOptions option %d\n", 
+                          descriptor->full_name().c_str(), ropt->number());
+                  break;
+              }
+            }
+          }
+        } else {
+          fprintf(stderr, "+++ enum '%s' has unknown type %d for field %d\n", 
+                  descriptor->full_name().c_str(), 
+                  (int)unkf->type(), (int)unkf->number());
+        }
+        break;
+
+      default:
+        fprintf(stderr, "+++ enum '%s' has unknown message option field %d\n", 
+                descriptor->full_name().c_str(), 
+                unkf->number());
+        break;
+      }
+    }
+  }
+}
+
 EnumGenerator::EnumGenerator(const EnumDescriptor* descriptor,
                              const string& dllexport_decl)
   : descriptor_(descriptor),
     dllexport_decl_(dllexport_decl) {
+  get_enum_riftopts(descriptor_, &rw_eopts_);
 }
 
 EnumGenerator::~EnumGenerator() {}
@@ -90,17 +167,27 @@ void EnumGenerator::GenerateDefinition(io::Printer* printer) {
   descriptor_->GetSourceLocation(&sourceLoc);
   PrintComment (printer, sourceLoc.leading_comments);
 
-  printer->Print(vars, "typedef enum _$classname$ {\n");
+  printer->Print(vars, "typedef enum $classname$ {\n");
   printer->Indent();
 
   const EnumValueDescriptor* min_value = descriptor_->value(0);
   const EnumValueDescriptor* max_value = descriptor_->value(0);
 
-
   vars["opt_comma"] = ",";
-  vars["prefix"] = FullNameToUpper(descriptor_->full_name()) + "__";
+
+  if (rw_eopts_.rw_c_prefix.length()) {
+    vars["prefix"] = rw_eopts_.rw_c_prefix + "_";
+  } else if (descriptor_->containing_type() == NULL) {
+    vars["prefix"] = "";
+  } else {
+    vars["prefix"] = FullNameToUpper(descriptor_->full_name()) + "__";
+  }
   for (int i = 0; i < descriptor_->value_count(); i++) {
-    vars["name"] = descriptor_->value(i)->name();
+    if (rw_eopts_.rw_c_prefix.length()) {
+      vars["name"] = ToUpper(descriptor_->value(i)->name());
+    } else {
+      vars["name"] = descriptor_->value(i)->name();
+    }
     vars["number"] = SimpleItoa(descriptor_->value(i)->number());
     if (i + 1 == descriptor_->value_count())
       vars["opt_comma"] = "";
@@ -120,7 +207,15 @@ void EnumGenerator::GenerateDefinition(io::Printer* printer) {
     }
   }
 
-  printer->Print(vars, "  PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE($uc_name$)\n");
+  // hide macros from gir parser
+  printer->Print("#ifndef __GI_SCANNER__\n");
+
+  if (descriptor_->containing_type() != NULL) {
+    vars["max_value"] = SimpleItoa(1+max_value->number());
+    printer->Print(vars, "  _PROTOBUF_C_MAX_ENUM($prefix$, $max_value$)\n");
+  }
+  printer->Print(vars, "  _PROTOBUF_C_FORCE_ENUM_TO_BE_INT_SIZE($uc_name$)\n");
+  printer->Print("#endif // __GI_SCANNER__\n");
   printer->Outdent();
   printer->Print(vars, "} $classname$;\n");
 }
@@ -151,7 +246,15 @@ void EnumGenerator::GenerateValueInitializer(io::Printer *printer, int index)
   const EnumValueDescriptor *vd = descriptor_->value(index);
   map<string, string> vars;
   vars["enum_value_name"] = vd->name();
-  vars["c_enum_value_name"] = FullNameToUpper(descriptor_->full_name()) + "__" + vd->name();
+
+  if (rw_eopts_.rw_c_prefix.length()) {
+    vars["c_enum_value_name"] = rw_eopts_.rw_c_prefix + "_" + ToUpper(vd->name());
+  } else if (descriptor_->containing_type() == NULL) {
+    vars["c_enum_value_name"] = vd->name();
+  } else {
+    vars["c_enum_value_name"] = FullNameToUpper(descriptor_->full_name()) + "__" + vd->name();
+  }
+
   vars["value"] = SimpleItoa(vd->number());
   printer->Print(vars,
    "  { \"$enum_value_name$\", \"$c_enum_value_name$\", $value$ },\n");
@@ -278,10 +381,16 @@ void EnumGenerator::GenerateEnumDescriptor(io::Printer* printer) {
   }
   printer->Print(vars, "};\n");
 
+  if (rw_eopts_.rw_yang_enum.length()) {
+    vars["helper"] = std::string("(const struct rw_yang_pb_enumdesc_t*)(&") + rw_eopts_.rw_yang_enum + ")";
+  } else {
+    vars["helper"] = "NULL";
+  }
+
   printer->Print(vars,
     "const ProtobufCEnumDescriptor $lcclassname$__descriptor =\n"
     "{\n"
-    "  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,\n"
+    "  PROTOBUF_C_ENUM_DESCRIPTOR_MAGIC,\n"
     "  \"$fullname$\",\n"
     "  \"$shortname$\",\n"
     "  \"$cname$\",\n"
@@ -292,11 +401,69 @@ void EnumGenerator::GenerateEnumDescriptor(io::Printer* printer) {
     "  $lcclassname$__enum_values_by_name,\n"
     "  $n_ranges$,\n"
     "  $lcclassname$__value_ranges,\n"
-    "  NULL,NULL,NULL,NULL   /* reserved[1234] */\n"
+    "  NULL,NULL,NULL,NULL, /* reserved[1234] */\n"
+    "  $helper$,\n"
     "};\n");
 
   delete[] value_index;
   delete[] name_index;
+}
+
+string EnumGenerator::MakeGiName(const char *discriminator)
+{
+  return FullNameToGICBase(descriptor_->full_name()) + "_" + discriminator;
+}
+
+void EnumGenerator::GenerateGiHEnums(io::Printer* printer)
+{
+  string to_str_f = MakeGiName("to_str");
+  string from_str_f = MakeGiName("from_str");
+
+  printer->Print("const char* $to_str_f$(gint enum_value) G_GNUC_UNUSED;\n", "to_str_f", to_str_f);
+  printer->Print("gint $from_str_f$(const char *enum_str, GError **error) G_GNUC_UNUSED;\n", "from_str_f", from_str_f);
+}
+
+void EnumGenerator::GenerateGiCEnumDefs(io::Printer* printer)
+{
+  std::map<string, string> vars;
+
+  vars["to_str_f"] = MakeGiName("to_str");
+  vars["from_str_f"] = MakeGiName("from_str");
+  if (descriptor_->file()->package().length()) {
+    vars["domain"] = MangleNameToUpper(descriptor_->file()->package());
+  } else {
+    vars["domain"] = MangleNameToUpper(StripProto(descriptor_->file()->name()));
+  }
+
+  printer->Print(vars, "const char* $to_str_f$(gint enum_value) \n"
+                       "{ \n");
+  printer->Indent();
+  for (int j = 0; j < descriptor_->value_count(); j++) {
+    const EnumValueDescriptor *vd = descriptor_->value(j);
+    vars["value"] = SimpleItoa(vd->number());
+    vars["name"] = vd->name();
+                            
+    printer->Print(vars, "if (enum_value == $value$) return \"$name$\"; \n");
+  }
+  printer->Print("return \"\";\n");
+  printer->Outdent();
+  printer->Print("}\n\n");
+
+  printer->Print(vars, "gint $from_str_f$(const char *enum_str, GError **error)\n"
+                       "{ \n");
+
+  printer->Indent();
+  for (int j = 0; j < descriptor_->value_count(); j++) {
+    const EnumValueDescriptor *vd = descriptor_->value(j);
+    vars["value"] = SimpleItoa(vd->number());
+    vars["name"] = vd->name();
+    printer->Print(vars, "if (!strcmp(enum_str, \"$name$\")) return $value$; \n");
+  }
+  printer->Print(vars, "PROTOBUF_C_GI_RAISE_EXCEPTION(error, $domain$, PROTO_GI_ERROR_INVALID_ENUM, "
+                       "\"Invalid Enum string passed %s\\n\", enum_str ); \n"
+                       "return -1; \n");
+  printer->Outdent();
+  printer->Print("}\n\n");
 }
 
 

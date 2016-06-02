@@ -67,10 +67,12 @@
 #include <string>
 #include <protoc-c/c_field.h>
 
+
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace c {
+
 
 class PrimitiveFieldGenerator : public FieldGenerator {
  public:
@@ -82,6 +84,19 @@ class PrimitiveFieldGenerator : public FieldGenerator {
   void GenerateDescriptorInitializer(io::Printer* printer) const;
   string GetDefaultValue(void) const;
   void GenerateStaticInit(io::Printer* printer) const;
+  void AssignStructMembers(io::Printer* printer, int num) const;
+  string GetTypeName() const;
+  string GetPointerType() const;
+
+  // GI related functions.
+  string GetGiTypeName(bool use_const = true) const;
+  string GetGiReturnAnnotations() const;
+  string GetGiGetterReturnType() const;
+  string GetGiGetterParameterList() const;
+  string GetGiSetterAnnotations() const;
+  string GetGiSetterParameterList() const;
+  void GenerateGiCGetterMethod(io::Printer* printer) const;
+  void GenerateGiCSetterMethod(io::Printer* printer) const;
 
  private:
 

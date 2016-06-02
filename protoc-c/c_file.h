@@ -65,6 +65,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <google/protobuf/stubs/common.h>
 #include <protoc-c/c_field.h>
 
@@ -76,9 +77,18 @@ namespace protobuf {
   }
 }
 
+
 namespace protobuf {
 namespace compiler {
 namespace c {
+
+/*
+ * Riftware file options.
+ */
+struct rift_fileopts {
+  vector<string> c_includes;
+  bool generate_gi;
+};
 
 class EnumGenerator;           // enum.h
 class MessageGenerator;        // message.h
@@ -92,8 +102,15 @@ class FileGenerator {
                          const string& dllexport_decl);
   ~FileGenerator();
 
-  void GenerateHeader(io::Printer* printer);
-  void GenerateSource(io::Printer* printer);
+  void GenerateHeader(io::Printer* printer, bool const generateGI);
+  void GenerateSource(io::Printer* printer, bool const generateGI);
+
+  // Gi code generation support functions.
+  string GetGiPrefix(const char* discriminator);
+  string GetGiCGlobalFuncName(const char* operation);
+  string GetYpbcGlobal(const char* discriminator);
+  rift_fileopts rw_fileopts_;
+  bool include_ypbc_header_;
 
  private:
   const FileDescriptor* file_;
@@ -105,6 +122,7 @@ class FileGenerator {
 
   // E.g. if the package is foo.bar, package_parts_ is {"foo", "bar"}.
   vector<string> package_parts_;
+
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FileGenerator);
 };

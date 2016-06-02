@@ -43,6 +43,9 @@ if test -n "$PKG_CONFIG"; then
     fi
 fi
 
+#PKG_CHECK_MODULES([GLIB], [glib-2.0])
+PKG_CHECK_MODULES([GOBJ], [gobject-2.0])
+
 AC_ARG_ENABLE([protoc],
   AS_HELP_STRING([--disable-protoc], [Disable building protoc_c (also disables tests)]))
 if test "x$enable_protoc" != "xno"; then

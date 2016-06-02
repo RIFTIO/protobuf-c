@@ -81,6 +81,34 @@ namespace c {
 class EnumGenerator;           // enum.h
 class ExtensionGenerator;      // extension.h
 
+struct RiftMopts {
+  int enforce;
+  int agg;
+  int suppress;
+  int flatinline;
+  uint32_t inline_max;
+  uint32_t rw_flags;
+  std::string ypbc_msg;
+  bool need_ypbc_include;
+  std::string c_typedef;
+  std::string c_typename;
+  std::string base_typename; /* ATTN: Should be repeated */
+  std::string msg_new_path;
+  bool hide_from_gi;
+  RiftMopts()
+      : enforce(),
+      agg(),
+      suppress(),
+      flatinline(),
+      inline_max(),
+      rw_flags(),
+      need_ypbc_include(),
+      hide_from_gi()
+  {}
+};
+
+void mdesc_to_riftmopts(const Descriptor* descriptor_, RiftMopts* riftmopts);
+
 class MessageGenerator {
  public:
   // See generator.cc for the meaning of dllexport_decl.
@@ -91,37 +119,86 @@ class MessageGenerator {
   // Header stuff.
 
   // Generate typedef.
-  void GenerateStructTypedef(io::Printer* printer);
+  void GenerateStructTypedef(io::Printer* printer, const bool hide_from_gi);
 
   // Generate descriptor prototype
-  void GenerateDescriptorDeclarations(io::Printer* printer);
+  void GenerateDescriptorDeclarations(io::Printer* printer, const bool hide_from_gi);
 
   // Generate descriptor prototype
-  void GenerateClosureTypedef(io::Printer* printer);
+  void GenerateClosureTypedef(io::Printer* printer, const bool hide_from_gi);
 
   // Generate definitions of all nested enums (must come before class
   // definitions because those classes use the enums definitions).
-  void GenerateEnumDefinitions(io::Printer* printer);
+  void GenerateEnumDefinitions(io::Printer* printer, const bool hide_from_gi);
 
   // Generate definitions for this class and all its nested types.
-  void GenerateStructDefinition(io::Printer* printer);
-
-  // Generate __INIT macro for populating this structure
-  void GenerateStructStaticInitMacro(io::Printer* printer);
+  void GenerateStructDefinition(io::Printer* printer, const bool hide_from_gi);
 
   // Generate standard helper functions declarations for this message.
-  void GenerateHelperFunctionDeclarations(io::Printer* printer, bool is_submessage);
+  void GenerateHelperFunctionDeclarations(io::Printer* printer, bool is_submessage, const bool hide_from_gi);
 
   // Source file stuff.
 
   // Generate code that initializes the global variable storing the message's
   // descriptor.
-  void GenerateMessageDescriptor(io::Printer* printer);
-  void GenerateHelperFunctionDefinitions(io::Printer* printer, bool is_submessage);
+  void GenerateMessageDescriptor(io::Printer* printer, bool generate_gi, const bool hide_from_gi);
+  void GenerateHelperFunctionDefinitions(io::Printer* printer, bool is_submessage, const bool hide_from_gi);
+
+  void GenerateMiniKeyStructDefinition(io::Printer* printer, const bool hide_from_gi);
+  void GenerateMinikeyDescriptor(io::Printer* printer, const bool hide_from_gi);
+  
+  // Generate the MetaData Macro for this message and its fields.
+  void GenerateMetaDataMacro(io::Printer* printer, bool generate_gi, const bool hide_from_gi);
+
+  void GeneratePBCMDStructDefinition(io::Printer* printer);
+  void GeneratePBCMDStructTypedef(io::Printer* printer, const bool hide_from_gi);
+
+
+  RiftMopts riftmopts_; /* ATTN: SHOULD BE PRIVATE! */
+
+  // Gi code generation support functions.
+  string GetGiCIdentifier(const char *operation = NULL);
+  string GetGiDescTypeName();
+  string GetGiDescIdentifier(const char *operation = NULL);
+
+  void GenerateGiTypeDefDecls(io::Printer* printer, const bool hide_from_gi);
+  void GenerateGiCBoxedStructDefs(io::Printer* printer, const bool hide_from_gi);
+  void GenerateGiRefHelperDecls(io::Printer* printer, const bool hide_from_gi);
+  void GenerateGiHDecls(io::Printer* printer, const bool hide_from_gi);
+  void GenerateGiToPbufMethodDecl(io::Printer* printer);
+  void GenerateGiFromPbufMethodDecl(io::Printer* printer);
+  void GenerateGiToPtrMethodDecl(io::Printer* printer);
+  void GenerateGiRetrieveDescriptorMethodDecl(io::Printer* printer);
+  void GenerateGiToPbcmMethodDecl(io::Printer* printer);
+  void GenerateGiFromPbcmMethodDecl(io::Printer* printer);
+  void GenerateGiSchemaMethodDecl(io::Printer* printer);
+  void GenerateGiSchemaChangeToDescriptorMethodDecl(io::Printer* printer);
+  void GenerateGiCopyFromMethodDecl(io::Printer* printer);
+  void GenerateGiHasFieldMethodDecl(io::Printer* printer);
+  void GenerateGiCDefs(io::Printer* printer, const bool hide_from_gi);
+  void GenerateGiBoxedRegistration(io::Printer* printer);
+  void GenerateGiBoxedUnrefDefinition(io::Printer* printer);
+  void GenerateGiNewMethod(io::Printer* printer);
+  void GenerateGiInvalidateMethod(io::Printer* printer);
+  void GenerateGiToPbufMethod(io::Printer* printer);
+  void GenerateGiFromPbufMethod(io::Printer* printer);
+  void GenerateGiToPtrMethod(io::Printer* printer);
+  void GenerateGiRetrieveDescriptorMethod(io::Printer* printer);
+  void GenerateGiToPbcmMethod(io::Printer* printer);
+  void GenerateGiFromPbcmMethod(io::Printer* printer);
+  void GenerateGiSchemaMethod(io::Printer* printer);
+  void GenerateGiSchemaChangeToDescriptorMethod(io::Printer* printer);
+  void GenerateGiCopyFromMethod(io::Printer* printer);
+  void GenerateGiHasFieldMethod(io::Printer* printer);
+  void GenerateGiHEnums(io::Printer* printer, const bool hide_from_gi);
+  void GenerateGiCEnumDefs(io::Printer* printer, const bool hide_from_gi);
+
+  string gi_typename_;
 
  private:
 
   string GetDefaultValueC(const FieldDescriptor *fd);
+
 
   const Descriptor* descriptor_;
   string dllexport_decl_;
@@ -129,6 +206,7 @@ class MessageGenerator {
   scoped_array<scoped_ptr<MessageGenerator> > nested_generators_;
   scoped_array<scoped_ptr<EnumGenerator> > enum_generators_;
   scoped_array<scoped_ptr<ExtensionGenerator> > extension_generators_;
+  bool gen_minikey_type_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MessageGenerator);
 };
