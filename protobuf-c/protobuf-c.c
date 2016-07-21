@@ -464,7 +464,7 @@ void protobuf_c_error_dump_records(void)
       localtime_r((const time_t*)(&r->time), &tm);
       char tbuf[64] = { 0 };
       strftime(tbuf, sizeof(tbuf), "%Y%m%d-%H%M%S", &tm);
-      fprintf(stderr, "[%3d] %s: %.*s\n", ei, tbuf, sizeof(r->error)-1, r->error);
+      fprintf(stderr, "[%3d] %s: %.*s\n", ei, tbuf, (int)sizeof(r->error)-1, r->error);
       fflush(stderr);
     }
   }
@@ -9681,7 +9681,7 @@ protobuf_print_value(const ProtobufCFieldInfo *finfo,
     break;
   case PROTOBUF_C_TYPE_BYTES:
     byte_len = PROTOBUF_C_MIN(max_write_size, finfo->len);
-    written += snprintf(buffer, byte_len, "%02X", (char*)finfo->element);
+    written += snprintf(buffer, byte_len, "%02lX", (unsigned long int)finfo->element);
     break;
   default:
     written += snprintf(buffer, max_write_size, "%s : %d", "Unknown type", finfo->fdesc->type);
