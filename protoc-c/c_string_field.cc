@@ -557,7 +557,8 @@ void StringFieldGenerator::GenerateGiCSetterMethod(io::Printer* printer) const
 
   printer->Indent();
 
-  printer->Print(vars, "const ProtobufCFieldDescriptor* fd = boxed->s.message->base_concrete.descriptor->fields.$fname$;\n"
+  printer->Print(vars, "PROTOBUF_C_GI_CHECK_FOR_ERROR_RETURN(boxed, err, $domain$);\n\n"
+                       "const ProtobufCFieldDescriptor* fd = boxed->s.message->base_concrete.descriptor->fields.$fname$;\n"
                        "RW_ASSERT(fd);\n"
                        "protobuf_c_message_delete_field(NULL, &boxed->s.message->base, fd->id);\n");
 

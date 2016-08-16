@@ -3374,7 +3374,6 @@ protobuf_c_message_compare_keys(const ProtobufCMessage *earlier,
     const ProtobufCFieldDescriptor *key_fdesc = &mdesc->fields[i];
 
     // Keys are required fields, atleast for now.
-    PROTOBUF_C_ASSERT(key_fdesc->label == PROTOBUF_C_LABEL_REQUIRED);
     bool is_inline = !!(key_fdesc->rw_flags & RW_PROTOBUF_FOPT_INLINE);
 
     void *key_ptr1 = ((char *)earlier) + key_fdesc->offset;
