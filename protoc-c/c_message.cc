@@ -1918,7 +1918,7 @@ void MessageGenerator::GenerateGiBoxedUnrefDefinition(io::Printer* printer)
 
     if (field->type() == FieldDescriptor::TYPE_MESSAGE) {
       vars["child_unref_fn"] = FullNameToGICBase(field->message_type()->full_name()) + "_unref";
-      vars["boxed_fname"] = "boxed_"+field->name();
+      vars["boxed_fname"] = "boxed_"+FieldName(field);
       vars["gi_ctname"] =  FullNameToGI(field->message_type());
       printer->Print(vars, "\nif (boxed->$boxed_fname$ != NULL) {\n");
       printer->Indent();

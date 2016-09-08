@@ -261,7 +261,12 @@ const char* const kKeywordList[] = {
   "void", "volatile", "wchar_t", "while", "xor", "xor_eq",
   "restrict",
   "alignas", "alignof", "char16_t", "char32_t", "constexpr", "decltype",
-  "noexcept", "nullptr", "static_assert", "thread_local"
+  "noexcept", "nullptr", "static_assert", "thread_local",
+  // Python Keywords
+  "and", "as", "assert", "break", "class", "continue", "def", "del", "elif", 
+  "else", "except", "exec", "finally", "for", "from", "global", "if", "import", 
+  "in", "is", "lambda", "not", "or", "pass", "print", "raise", "return", "try", 
+  "while", "with", "yield",
 };
 
 std::set<string> MakeKeywordsMap() {
