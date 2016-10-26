@@ -6786,9 +6786,11 @@ protobuf_c_message_set_field_impl(ProtobufCInstance* instance,
         }
 
         char* old_vec = *(char**)fbase;
-        memcpy(new_vec,old_vec,old_sz);
-        memset(new_vec+old_sz,0,sizeof_elt);
-        do_free(instance, old_vec);
+        if (old_vec != NULL) {
+          memcpy(new_vec,old_vec,old_sz);
+          memset(new_vec+old_sz,0,sizeof_elt);
+          do_free(instance, old_vec);
+        }
 
         *(void**)fbase = new_vec;
         element = new_vec + old_sz;
@@ -7319,9 +7321,11 @@ protobuf_c_message_set_field(ProtobufCInstance* instance,
         }
 
         char* old_vec = *(char**)fbase;
-        memcpy(new_vec,old_vec,old_sz);
-        memset(new_vec+old_sz,0,sizeof_elt);
-        do_free(instance, old_vec);
+        if (old_vec != NULL) {
+          memcpy(new_vec,old_vec,old_sz);
+          memset(new_vec+old_sz,0,sizeof_elt);
+          do_free(instance, old_vec);
+        }
 
         *(void**)fbase = new_vec;
         element = new_vec + old_sz;
