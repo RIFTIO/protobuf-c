@@ -584,7 +584,8 @@ void FileGenerator::GenerateHeader(io::Printer* printer, bool const generateGI)
                  "  $module$_PROTO_GI_ERROR_HAS_PARENT = 10002,\n"
                  "  $module$_PROTO_GI_ERROR_XML_TO_PB_FAILURE = 10003,\n"
                  "  $module$_PROTO_GI_ERROR_INVALID_ENUM = 10004,\n"
-                 "  $module$_PROTO_GI_ERROR_FAILURE = 10005,\n" // Generic error code.
+	 	 "  $module$_PROTO_GI_ERROR_PB_TO_XML_FAILURE = 10005,\n"
+                 "  $module$_PROTO_GI_ERROR_FAILURE = 10006,\n" // Generic error code.
                  "} $cmodule$ProtobufCGiError;\n\n");
 
   printer->Print(vars, "GQuark $gi_prefix$error_quark(void); \n\n");
