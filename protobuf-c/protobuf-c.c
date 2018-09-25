@@ -5568,8 +5568,11 @@ protobuf_c_message_unpack_usebody(ProtobufCInstance* instance,
   } else {
     rv = do_alloc(instance, mdesc->sizeof_message);
   }
-  if (!rv)
+  if (!rv) {
+    PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
+                              "unpack usebody: No messasge memory");
     return (NULL);
+  }
   scanned_member_slabs[0] = first_member_slab;
 
   required_fields_bitmap_len = (mdesc->n_fields + 7) / 8;
@@ -5577,7 +5580,7 @@ protobuf_c_message_unpack_usebody(ProtobufCInstance* instance,
     required_fields_bitmap = do_alloc(instance, required_fields_bitmap_len);
     if (!required_fields_bitmap) {
       PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
-                              "unpack usebody: No memory");
+                              "unpack usebody: No fields bitmap memory");
       do_free(instance, rv);
       return (NULL);
     }
@@ -5679,6 +5682,8 @@ protobuf_c_message_unpack_usebody(ProtobufCInstance* instance,
         tmp.len = scan_length_prefixed_data(instance, rem, at, &pref_len);
         if (tmp.len == 0) {
           /* NOTE: scan_length_prefixed_data calls UNPACK_ERROR */
+          PROTOBUF_C_MESSAGE_ERROR(instance, NULL, fdesc,
+                                   "length prefixed data len 0");
           goto error_cleanup_during_scan;
         }
         tmp.length_prefix_len = pref_len;
@@ -5714,8 +5719,11 @@ protobuf_c_message_unpack_usebody(ProtobufCInstance* instance,
       which_slab++;
       size = sizeof(ScannedMember) << (which_slab + FIRST_SCANNED_MEMBER_SLAB_SIZE_LOG2);
       scanned_member_slabs[which_slab] = do_alloc(instance, size);
-      if (scanned_member_slabs[which_slab] == NULL)
+      if (scanned_member_slabs[which_slab] == NULL) {
+        PROTOBUF_C_MESSAGE_ERROR(instance, NULL, fdesc,
+                                 "slab %u not found", (unsigned)which_slab);
         goto error_cleanup_during_scan;
+      }
     }
     scanned_member_slabs[which_slab][in_slab_index++] = tmp;
 
@@ -5768,6 +5776,9 @@ protobuf_c_message_unpack_usebody(ProtobufCInstance* instance,
           void *a = do_alloc(instance, sizeof_elt * n);
           if (!a) {
             CLEAR_REMAINING_N_PTRS();
+            PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
+                                     "unpack usebody: No elt memory");
+
             goto error_cleanup;
           }
           STRUCT_MEMBER(void *, rv, fdesc->offset) = a;
@@ -5790,12 +5801,17 @@ protobuf_c_message_unpack_usebody(ProtobufCInstance* instance,
   if (n_unknown) {
     rv->unknown_buffer = do_zalloc(instance, sizeof(ProtobufCMessageUnknownFields));
     if (!rv->unknown_buffer) {
+      PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
+                               "unpack usebody: No unknown buffer memory");
       goto error_cleanup;
     }
     rv->unknown_buffer->unknown_fields = do_alloc(instance,
                                                   n_unknown * sizeof(ProtobufCMessageUnknownField));
-    if (rv->unknown_buffer->unknown_fields == NULL)
+    if (rv->unknown_buffer->unknown_fields == NULL) {
+      PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
+                               "unpack usebody: No unknown fields memory");
       goto error_cleanup;
+    }
   }
 
   /* do real parsing */
