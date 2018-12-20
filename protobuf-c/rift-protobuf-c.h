@@ -1515,7 +1515,7 @@ struct ProtobufCFlatBinaryData {
   size_t  len;
 
   /*! data of fixed size. */
-  uint8_t data[];
+  uint8_t data[1];
 };
 
 /*!
