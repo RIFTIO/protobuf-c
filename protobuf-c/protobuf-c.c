@@ -10532,7 +10532,7 @@ protobuf_c_message_gi_ref(
   PROTOBUF_C_ASSERT(old_ref_cnt >= 1);
 
   ProtobufCMessage* message = gi_boxed->message;
-  if (message) {
+  if (message && message->descriptor) {
     ProtobufCMessageDebugStats* debug_stats = message->descriptor->debug_stats;
     if (debug_stats) {
       g_atomic_int_inc(&debug_stats->gi_ref_count);
@@ -10572,7 +10572,7 @@ protobuf_c_message_gi_invalidate_start(
   PROTOBUF_C_ASSERT(PROTOBUF_C_GI_BASE_IS_GOOD(gi_base));
 
   ProtobufCMessage* message = gi_boxed->message;
-  if (message) {
+  if (message && message->descriptor) {
     ProtobufCMessageDebugStats* debug_stats = message->descriptor->debug_stats;
     if (debug_stats) {
       int ref_cnt = g_atomic_int_get(&gi_base->ref_count);
@@ -10609,7 +10609,7 @@ protobuf_c_message_gi_become_zombie(
   PROTOBUF_C_ASSERT(gi_base->parent);
 
   ProtobufCMessage* message = gi_boxed->message;
-  if (message) {
+  if (message && message->descriptor) {
     ProtobufCMessageDebugStats* debug_stats = message->descriptor->debug_stats;
     if (debug_stats) {
       int ref_cnt = g_atomic_int_get(&gi_base->ref_count);
@@ -10631,7 +10631,7 @@ protobuf_c_message_gi_revive_zombie(
   PROTOBUF_C_ASSERT(gi_base->parent);
 
   ProtobufCMessage* message = gi_boxed->message;
-  if (message) {
+  if (message && message->descriptor) {
     ProtobufCMessageDebugStats* debug_stats = message->descriptor->debug_stats;
     if (debug_stats) {
       int ref_cnt = g_atomic_int_get(&gi_base->ref_count);
@@ -10655,7 +10655,7 @@ protobuf_c_message_gi_unref(
   PROTOBUF_C_ASSERT(PROTOBUF_C_GI_BASE_IS_GOOD(gi_base));
 
   ProtobufCMessage* message = gi_boxed->message;
-  if (message) {
+  if (message && message->descriptor) {
     ProtobufCMessageDebugStats* debug_stats = message->descriptor->debug_stats;
     if (debug_stats) {
       g_atomic_int_inc(&debug_stats->gi_unref_count);
