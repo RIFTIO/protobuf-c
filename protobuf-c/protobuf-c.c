@@ -4059,8 +4059,19 @@ merge_singular_field(ProtobufCInstance* instance,
       char* f_string = (char *)f_field;
       char* t_string = (char *)t_field;
 
+      if (f_string == NULL) {
+        PROTOBUF_C_MESSAGE_ERROR(instance, NULL, fdesc,
+                                 "Received protobuf field with NULL");
+        ok = FALSE;
+        break;
+      }
+
       if (is_inline) {
-        strcpy(t_string, f_string);
+        if (t_string != NULL) {
+          strcpy(t_string, f_string);
+        } else {
+          ok = FALSE;
+        }
       } else {
         if (t_string != fdesc->default_value) {
           do_free(instance, t_string);
