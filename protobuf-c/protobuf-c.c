@@ -6635,11 +6635,6 @@ protobuf_c_message_descriptor_get_field_by_name(const ProtobufCMessageDescriptor
     if (rv == 0) {
       return fdesc;
     }
-    // Check for c_name match too
-    rv = strcmp(fdesc->c_name, name);
-    if (rv == 0) {
-      return fdesc;
-    }
     if (rv < 0) {
       count = start + count - (mid + 1);
       start = mid + 1;
@@ -6647,17 +6642,22 @@ protobuf_c_message_descriptor_get_field_by_name(const ProtobufCMessageDescriptor
       count = mid - start;
     }
   }
-  if (count == 0) {
-    return NULL;
+  if (count != 0) {
+    fdesc = mdesc->fields + mdesc->fields_sorted_by_name[start];
+    if (strcmp(fdesc->name, name) == 0) {
+      return fdesc;
+    }
   }
-  fdesc = mdesc->fields + mdesc->fields_sorted_by_name[start];
-  if (strcmp(fdesc->name, name) == 0) {
-    return fdesc;
+
+  // Fallback to check if the c_name matches.
+  // It is unlikely that a name will not match
+  for (int i = 0; i < mdesc->n_fields; i++) {
+    fdesc = mdesc->fields + i;
+    if (strcmp(fdesc->c_name, name) == 0) {
+      return fdesc;
+    }
   }
-  // Check for c_name match too
-  if (strcmp(fdesc->c_name, name) == 0) {
-    return fdesc;
-  }
+
   return NULL;
 }
 
@@ -9042,7 +9042,7 @@ compare_field_counted(
   PROTOBUF_C_ASSERT(a_fdesc);
   PROTOBUF_C_ASSERT(b_msg);
   PROTOBUF_C_ASSERT(b_fdesc);
-  
+
   for (size_t i = start_index; i < limit_index; ++i) {
     ProtobufCFieldInfo a_finfo;
     protobuf_c_boolean a_ok = protobuf_c_message_get_field_instance(
