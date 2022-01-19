@@ -6635,6 +6635,11 @@ protobuf_c_message_descriptor_get_field_by_name(const ProtobufCMessageDescriptor
     if (rv == 0) {
       return fdesc;
     }
+    // Check for c_name match too
+    rv = strcmp(fdesc->c_name, name);
+    if (rv == 0) {
+      return fdesc;
+    }
     if (rv < 0) {
       count = start + count - (mid + 1);
       start = mid + 1;
@@ -6647,6 +6652,10 @@ protobuf_c_message_descriptor_get_field_by_name(const ProtobufCMessageDescriptor
   }
   fdesc = mdesc->fields + mdesc->fields_sorted_by_name[start];
   if (strcmp(fdesc->name, name) == 0) {
+    return fdesc;
+  }
+  // Check for c_name match too
+  if (strcmp(fdesc->c_name, name) == 0) {
     return fdesc;
   }
   return NULL;
