@@ -8275,6 +8275,49 @@ protobuf_c_message_get_field_instance(ProtobufCInstance *instance,
 
 /* --- RIFT usability enhancements --- */
 
+/*
+ * There are scenarios where the message descriptor from the pbcm does not
+ * match with the pre-defined generated descriptor instances. For eg:
+ * in some cases, the schema descriptors would get dynamically generated during
+ * schema merge of augmented models. Need to handle such cases differently than
+ * just using pointer comparisons. See RIFT-36631 for more details.
+ *
+ * Relies on asserting rather than a boolean return code.
+ */
+static void compare_message_descriptors(
+    const ProtobufCMessageDescriptor* from_the_pbcm, const ProtobufCMessageDescriptor* needed_desc)
+{
+  // If the descriptors do not match, it must be atleast the dynamically generated one.
+  if (from_the_pbcm != needed_desc) {
+    PROTOBUF_C_ASSERT(strstr(from_the_pbcm->name, "rw-dynamic") != NULL);
+  } else {
+    PROTOBUF_C_ASSERT(from_the_pbcm == needed_desc);
+  }
+  // The short name has to be the same, static or dynamically generated
+  PROTOBUF_C_ASSERT(strcmp(from_the_pbcm->short_name, needed_desc->short_name) == 0);
+
+  // The number of fields in both the descriptors need not be the same.
+  // The message descriptor can have foeds from the augment as well.
+  // Hence we select the descriptor with lesser number of fields and
+  // check if all those fields are present in the other descriptor.
+  const ProtobufCMessageDescriptor* shortest_desc = from_the_pbcm;
+  const ProtobufCMessageDescriptor* other_desc = needed_desc;
+
+  if (from_the_pbcm->n_fields < needed_desc->n_fields) {
+    shortest_desc = from_the_pbcm;
+    other_desc = needed_desc;
+  } else if (needed_desc->n_fields < from_the_pbcm->n_fields) {
+    shortest_desc = needed_desc;
+    other_desc = from_the_pbcm;
+  }
+
+  for (size_t i=0; i < shortest_desc->n_fields; i++) {
+    const char* name = shortest_desc->fields[i].name;
+    PROTOBUF_C_ASSERT(
+        protobuf_c_message_descriptor_get_field_by_name(other_desc, name) != NULL);
+  }
+}
+
 uint8_t *
 protobuf_c_message_serialize(ProtobufCInstance* instance,
                              const ProtobufCMessage *message,
@@ -8321,7 +8364,8 @@ protobuf_c_message_copy_delta(ProtobufCInstance* instance,
                               const ProtobufCMessage *from,
                               ProtobufCMessage* to)
 {
-  PROTOBUF_C_ASSERT(from->descriptor == to->descriptor);
+  //PROTOBUF_C_ASSERT(from->descriptor == to->descriptor);
+  compare_message_descriptors(from->descriptor, to->descriptor);
 
   if (PROTOBUF_C_MESSAGE_IS_DELTA(from)) {
 
@@ -8343,8 +8387,13 @@ protobuf_c_message_copy_delta(ProtobufCInstance* instance,
   }
 
   unsigned i = 0;
-  for (i = 0; i < from->descriptor->n_fields; i++) {
-    const ProtobufCFieldDescriptor* fdesc = from->descriptor->fields + i;
+
+  // NOTE: We are not copying the fields from `from` descriptor because
+  // it can have more fields that `to`. See description for `compare_message_descriptors`.
+  // Since `to` is a subset or complete set of `from`, we can use the fields described in
+  // `to` descriptor instead.
+  for (i = 0; i < to->descriptor->n_fields; i++) {
+    const ProtobufCFieldDescriptor* fdesc = to->descriptor->fields + i;
     if (fdesc->type != PROTOBUF_C_TYPE_MESSAGE) {
       continue;
     }
@@ -8405,7 +8454,8 @@ protobuf_c_message_duplicate_allow_deltas(ProtobufCInstance* instance,
 
   ProtobufCPackOptions pack_opts = protobuf_c_pack_opts_default;
   if (is_delta) {
-    PROTOBUF_C_ASSERT(message->descriptor == mdesc);
+    // PROTOBUF_C_ASSERT(message->descriptor == mdesc);
+    compare_message_descriptors(message->descriptor, mdesc);
     pack_opts.discard_unknown = TRUE;
   }
 
