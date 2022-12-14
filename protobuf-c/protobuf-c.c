@@ -8292,6 +8292,7 @@ static void compare_message_descriptors(
     PROTOBUF_C_ASSERT(strstr(from_the_pbcm->name, "rw-dynamic") != NULL);
   } else {
     PROTOBUF_C_ASSERT(from_the_pbcm == needed_desc);
+    return;
   }
   // The short name has to be the same, static or dynamically generated
   PROTOBUF_C_ASSERT(strcmp(from_the_pbcm->short_name, needed_desc->short_name) == 0);
