@@ -88,7 +88,7 @@ void PrimitiveFieldGenerator::AssignStructMembers(io::Printer* printer, int num)
     kn[0] = 0;
   }
 
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["name"] = FieldName(descriptor_);
   vars["deprecated"] = FieldDeprecated(descriptor_);
 
@@ -101,22 +101,22 @@ void PrimitiveFieldGenerator::AssignStructMembers(io::Printer* printer, int num)
 void PrimitiveFieldGenerator::GenerateStructMembers(io::Printer* printer) const
 {
   string c_type;
-  map<string, string> vars;
+  std::map<string, string> vars;
   switch (descriptor_->type()) {
-    case FieldDescriptor::TYPE_SINT32  : 
-    case FieldDescriptor::TYPE_SFIXED32: 
+    case FieldDescriptor::TYPE_SINT32  :
+    case FieldDescriptor::TYPE_SFIXED32:
     case FieldDescriptor::TYPE_INT32   : c_type = "int32_t"; break;
-    case FieldDescriptor::TYPE_SINT64  : 
+    case FieldDescriptor::TYPE_SINT64  :
     case FieldDescriptor::TYPE_SFIXED64:
     case FieldDescriptor::TYPE_INT64   : c_type = "int64_t"; break;
-    case FieldDescriptor::TYPE_UINT32  : 
+    case FieldDescriptor::TYPE_UINT32  :
     case FieldDescriptor::TYPE_FIXED32 : c_type = "uint32_t"; break;
-    case FieldDescriptor::TYPE_UINT64  : 
+    case FieldDescriptor::TYPE_UINT64  :
     case FieldDescriptor::TYPE_FIXED64 : c_type = "uint64_t"; break;
     case FieldDescriptor::TYPE_FLOAT   : c_type = "float"; break;
     case FieldDescriptor::TYPE_DOUBLE  : c_type = "double"; break;
     case FieldDescriptor::TYPE_BOOL    : c_type = "protobuf_c_boolean"; break;
-    case FieldDescriptor::TYPE_ENUM    : 
+    case FieldDescriptor::TYPE_ENUM    :
     case FieldDescriptor::TYPE_STRING  :
     case FieldDescriptor::TYPE_BYTES   :
     case FieldDescriptor::TYPE_GROUP   :
@@ -175,7 +175,7 @@ string PrimitiveFieldGenerator::GetDefaultValue() const
 }
 void PrimitiveFieldGenerator::GenerateStaticInit(io::Printer* printer) const
 {
-  map<string, string> vars;
+  std::map<string, string> vars;
   if (descriptor_->has_default_value()) {
     vars["default_value"] = GetDefaultValue();
   } else {
@@ -221,7 +221,7 @@ void PrimitiveFieldGenerator::GenerateDescriptorInitializer(io::Printer* printer
     WRITE_CASE(BOOL)
   #undef WRITE_CASE
 
-    case FieldDescriptor::TYPE_ENUM    : 
+    case FieldDescriptor::TYPE_ENUM    :
     case FieldDescriptor::TYPE_STRING  :
     case FieldDescriptor::TYPE_BYTES   :
     case FieldDescriptor::TYPE_GROUP   :
@@ -242,21 +242,21 @@ string PrimitiveFieldGenerator::GetTypeName() const
 string PrimitiveFieldGenerator::GetPointerType() const
 {
   switch (descriptor_->type()) {
-    case FieldDescriptor::TYPE_SINT32  : 
-    case FieldDescriptor::TYPE_SFIXED32: 
+    case FieldDescriptor::TYPE_SINT32  :
+    case FieldDescriptor::TYPE_SFIXED32:
     case FieldDescriptor::TYPE_INT32   : return "int32_t*";
-    case FieldDescriptor::TYPE_SINT64  : 
+    case FieldDescriptor::TYPE_SINT64  :
     case FieldDescriptor::TYPE_SFIXED64:
     case FieldDescriptor::TYPE_INT64   : return "int64_t*";
-    case FieldDescriptor::TYPE_UINT32  : 
+    case FieldDescriptor::TYPE_UINT32  :
     case FieldDescriptor::TYPE_FIXED32 : return "uint32_t*";
-    case FieldDescriptor::TYPE_UINT64  : 
+    case FieldDescriptor::TYPE_UINT64  :
     case FieldDescriptor::TYPE_FIXED64 : return "uint64_t*";
     case FieldDescriptor::TYPE_FLOAT   : return "float*";
     case FieldDescriptor::TYPE_DOUBLE  : return "double*";
     case FieldDescriptor::TYPE_BOOL    : return "protobuf_c_boolean*";
 
-    case FieldDescriptor::TYPE_ENUM    : 
+    case FieldDescriptor::TYPE_ENUM    :
     case FieldDescriptor::TYPE_STRING  :
     case FieldDescriptor::TYPE_BYTES   :
     case FieldDescriptor::TYPE_GROUP   :
@@ -269,21 +269,21 @@ string PrimitiveFieldGenerator::GetPointerType() const
 string PrimitiveFieldGenerator::GetGiTypeName(bool use_const) const
 {
   switch (descriptor_->type()) {
-    case FieldDescriptor::TYPE_SINT32  : 
-    case FieldDescriptor::TYPE_SFIXED32: 
+    case FieldDescriptor::TYPE_SINT32  :
+    case FieldDescriptor::TYPE_SFIXED32:
     case FieldDescriptor::TYPE_INT32   : return "int32_t";
-    case FieldDescriptor::TYPE_SINT64  : 
+    case FieldDescriptor::TYPE_SINT64  :
     case FieldDescriptor::TYPE_SFIXED64:
     case FieldDescriptor::TYPE_INT64   : return "gint64";
-    case FieldDescriptor::TYPE_UINT32  : 
+    case FieldDescriptor::TYPE_UINT32  :
     case FieldDescriptor::TYPE_FIXED32 : return "uint32_t";
-    case FieldDescriptor::TYPE_UINT64  : 
+    case FieldDescriptor::TYPE_UINT64  :
     case FieldDescriptor::TYPE_FIXED64 : return "guint64";
     case FieldDescriptor::TYPE_FLOAT   : return "float";
     case FieldDescriptor::TYPE_DOUBLE  : return "gdouble";
     case FieldDescriptor::TYPE_BOOL    : return "gboolean";
 
-    case FieldDescriptor::TYPE_ENUM    : 
+    case FieldDescriptor::TYPE_ENUM    :
     case FieldDescriptor::TYPE_STRING  :
     case FieldDescriptor::TYPE_BYTES   :
     case FieldDescriptor::TYPE_GROUP   :
@@ -305,7 +305,7 @@ string PrimitiveFieldGenerator::GetGiReturnAnnotations() const
     annotations.append("(array length=len)");
     annotations.append("(transfer none)");
     annotations.append("(nullable)");
-  } 
+  }
 
   if (annotations.length()) {
     annotations.append(":");
@@ -387,7 +387,7 @@ void PrimitiveFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) cons
     getter_func.append("_yang"); // Disambiguate with an _yang
   }
   vars["getter_fn"] = getter_func;
-  
+
   if (descriptor_->file()->package().length()) {
     vars["domain"] = MangleNameToUpper(descriptor_->file()->package());
   } else {

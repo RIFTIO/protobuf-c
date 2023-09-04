@@ -169,13 +169,13 @@ FileGenerator::FileGenerator(const FileDescriptor* file,
                              const string& dllexport_decl)
   : file_(file),
     message_generators_(
-      new scoped_ptr<MessageGenerator>[file->message_type_count()]),
+      new std::unique_ptr<MessageGenerator>[file->message_type_count()]),
     enum_generators_(
-      new scoped_ptr<EnumGenerator>[file->enum_type_count()]),
+      new std::unique_ptr<EnumGenerator>[file->enum_type_count()]),
     service_generators_(
-      new scoped_ptr<ServiceGenerator>[file->service_count()]),
+      new std::unique_ptr<ServiceGenerator>[file->service_count()]),
     extension_generators_(
-      new scoped_ptr<ExtensionGenerator>[file->extension_count()]) {
+      new std::unique_ptr<ExtensionGenerator>[file->extension_count()]) {
 
   fdesc_to_rift_fileopts(file, &rw_fileopts_);
   include_ypbc_header_ = false;
@@ -311,7 +311,7 @@ void FileGenerator::GenerateSource(io::Printer* printer, bool const generateGI)
       message_generators_[i]->GenerateGiCDefs(printer, hide_from_gi);
     }
   }
-  
+
 }
 
 /*
@@ -391,7 +391,7 @@ void FileGenerator::GenerateHeader(io::Printer* printer, bool const generateGI)
     }
   }
 
-  
+
   // Include any files from the yang include extension.
   for (unsigned i = 0; i < rw_fileopts_.c_includes.size(); i++) {
     printer->Print("#include \"$incfile$\"\n",
@@ -523,7 +523,7 @@ void FileGenerator::GenerateHeader(io::Printer* printer, bool const generateGI)
   printer->Print("#include <sys/cdefs.h>\n"
                  "#include <stdint.h>\n"
                  "#include <glib-object.h>\n");
-  printer->Print("#endif // __GI_SCANNER__\n");                 
+  printer->Print("#endif // __GI_SCANNER__\n");
   printer->Print("#include <rw_gi.h>\n"
                  "#include <yangmodel_gi.h>\n"
                  "#include <rw_keyspec_gi.h>\n"
@@ -642,10 +642,10 @@ void FileGenerator::GenerateHeader(io::Printer* printer, bool const generateGI)
         "#include \"$basename$.ypbc.h\"\n\n",
         "filename_identifier", filename_identifier,
         "basename", StripProto(file_->name()));
-  } 
+  }
 
 
-  
+
   printer->Print("#endif // PROTOBUF_C_GI_$filename_identifier$__INCLUDED\n",
                  "filename_identifier", filename_identifier);
 

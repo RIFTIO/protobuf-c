@@ -46,7 +46,7 @@ do { \
 GQuark
 protobuf_c_field_ref_error_quark (void)
 {
-  static volatile gsize quark = 0;
+  static gsize quark = 0;
 
   if (g_once_init_enter (&quark))
     g_once_init_leave (&quark,  g_quark_from_static_string ("ProtobufC_FieldRef_Error"));
@@ -79,7 +79,7 @@ protobuf_c_delta_mark_field_deleted(ProtobufCInstance* instance,
   PROTOBUF_C_ASSERT(PROTOBUF_C_MESSAGE_IS_DATA(msg));
   PROTOBUF_C_ASSERT(!msg->unknown_buffer);
 
-  ProtobufCDeleteDelta* delta = 
+  ProtobufCDeleteDelta* delta =
       protobuf_c_instance_alloc(instance, sizeof(ProtobufCDeleteDelta));
 
   delta->me = FALSE;
@@ -98,7 +98,7 @@ protobuf_c_delta_mark_me_deleted(ProtobufCInstance* instance,
   PROTOBUF_C_ASSERT(PROTOBUF_C_MESSAGE_IS_DATA(msg));
   PROTOBUF_C_ASSERT(!msg->unknown_buffer);
 
-  ProtobufCDeleteDelta* delta = 
+  ProtobufCDeleteDelta* delta =
       protobuf_c_instance_alloc(instance, sizeof(ProtobufCDeleteDelta));
 
   delta->me = TRUE;
@@ -200,7 +200,7 @@ protobuf_c_field_ref_goto(ProtobufCFieldReference* fref,
   return fref->status;
 }
 
-uint64_t 
+uint64_t
 protobuf_c_field_ref_goto_proto_name(ProtobufCFieldReference* fref,
                                      ProtobufCMessage* msg,
                                      const char* fname)
@@ -293,8 +293,8 @@ protobuf_c_field_ref_mark_field_deleted(ProtobufCFieldReference* fref)
 }
 
 gboolean
-protobuf_c_field_ref_pb_text_set(ProtobufCFieldReference* fref, 
-                                 const gchar* strval, 
+protobuf_c_field_ref_pb_text_set(ProtobufCFieldReference* fref,
+                                 const gchar* strval,
                                  GError **error)
 {
   PROTOBUF_C_ASSERT(PROTOBUF_C_FREF_IS_VALID(fref));
@@ -312,7 +312,7 @@ protobuf_c_field_ref_pb_text_set(ProtobufCFieldReference* fref,
     return ok;
   }
 
-  FIELDREF_GI_RAISE_EXCEPTION(error, 
+  FIELDREF_GI_RAISE_EXCEPTION(error,
                               FIELDREF_PROTO_GI_ERROR_INVALID_VALUE,
                               "Invalid text for set_pb_text");
 

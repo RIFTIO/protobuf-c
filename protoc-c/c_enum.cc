@@ -86,7 +86,7 @@ void get_enum_riftopts(const EnumDescriptor* descriptor, rw_eopts_t *rw_eopts) {
   UnknownFieldSet *unks = mopts.mutable_unknown_fields();
 
   if (!unks->empty()) {
-    RIFTDBG("+++ enum descriptor '%s' has %d extension options\n", 
+    RIFTDBG("+++ enum descriptor '%s' has %d extension options\n",
              descriptor->full_name().c_str(), unks->field_count());
 
     for (int i=0; i<unks->field_count(); i++) {
@@ -125,22 +125,22 @@ void get_enum_riftopts(const EnumDescriptor* descriptor, rw_eopts_t *rw_eopts) {
                   break;
 
                 default:
-                  fprintf(stderr, "+++ enum '%s' has unknown RwEnumOptions option %d\n", 
+                  fprintf(stderr, "+++ enum '%s' has unknown RwEnumOptions option %d\n",
                           descriptor->full_name().c_str(), ropt->number());
                   break;
               }
             }
           }
         } else {
-          fprintf(stderr, "+++ enum '%s' has unknown type %d for field %d\n", 
-                  descriptor->full_name().c_str(), 
+          fprintf(stderr, "+++ enum '%s' has unknown type %d for field %d\n",
+                  descriptor->full_name().c_str(),
                   (int)unkf->type(), (int)unkf->number());
         }
         break;
 
       default:
-        fprintf(stderr, "+++ enum '%s' has unknown message option field %d\n", 
-                descriptor->full_name().c_str(), 
+        fprintf(stderr, "+++ enum '%s' has unknown message option field %d\n",
+                descriptor->full_name().c_str(),
                 unkf->number());
         break;
       }
@@ -158,7 +158,7 @@ EnumGenerator::EnumGenerator(const EnumDescriptor* descriptor,
 EnumGenerator::~EnumGenerator() {}
 
 void EnumGenerator::GenerateDefinition(io::Printer* printer) {
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["classname"] = FullNameToC(descriptor_->full_name());
   vars["shortname"] = descriptor_->name();
   vars["uc_name"] = FullNameToUpper(descriptor_->full_name());
@@ -221,7 +221,7 @@ void EnumGenerator::GenerateDefinition(io::Printer* printer) {
 }
 
 void EnumGenerator::GenerateDescriptorDeclarations(io::Printer* printer) {
-  map<string, string> vars;
+  std::map<string, string> vars;
   if (dllexport_decl_.empty()) {
     vars["dllexport"] = "";
   } else {
@@ -244,7 +244,7 @@ struct ValueIndex
 void EnumGenerator::GenerateValueInitializer(io::Printer *printer, int index)
 {
   const EnumValueDescriptor *vd = descriptor_->value(index);
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["enum_value_name"] = vd->name();
 
   if (rw_eopts_.rw_c_prefix.length()) {
@@ -279,7 +279,7 @@ static int compare_value_indices_by_name(const void *a, const void *b)
 }
 
 void EnumGenerator::GenerateEnumDescriptor(io::Printer* printer) {
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["fullname"] = descriptor_->full_name();
   vars["lcclassname"] = FullNameToLower(descriptor_->full_name());
   vars["cname"] = FullNameToC(descriptor_->full_name());
@@ -442,7 +442,7 @@ void EnumGenerator::GenerateGiCEnumDefs(io::Printer* printer)
     const EnumValueDescriptor *vd = descriptor_->value(j);
     vars["value"] = SimpleItoa(vd->number());
     vars["name"] = vd->name();
-                            
+
     printer->Print(vars, "if (enum_value == $value$) return \"$name$\"; \n");
   }
   printer->Print("return \"\";\n");

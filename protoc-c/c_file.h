@@ -66,6 +66,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 #include <google/protobuf/stubs/common.h>
 #include <protoc-c/c_field.h>
 
@@ -86,7 +87,7 @@ namespace c {
  * Riftware file options.
  */
 struct rift_fileopts {
-  vector<string> c_includes;
+  std::vector<string> c_includes;
   bool generate_gi;
 };
 
@@ -115,13 +116,13 @@ class FileGenerator {
  private:
   const FileDescriptor* file_;
 
-  scoped_array<scoped_ptr<MessageGenerator> > message_generators_;
-  scoped_array<scoped_ptr<EnumGenerator> > enum_generators_;
-  scoped_array<scoped_ptr<ServiceGenerator> > service_generators_;
-  scoped_array<scoped_ptr<ExtensionGenerator> > extension_generators_;
+  std::unique_ptr<std::unique_ptr<MessageGenerator>[] > message_generators_;
+  std::unique_ptr<std::unique_ptr<EnumGenerator>[] > enum_generators_;
+  std::unique_ptr<std::unique_ptr<ServiceGenerator>[] > service_generators_;
+  std::unique_ptr<std::unique_ptr<ExtensionGenerator>[] > extension_generators_;
 
   // E.g. if the package is foo.bar, package_parts_ is {"foo", "bar"}.
-  vector<string> package_parts_;
+  std::vector<string> package_parts_;
 
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FileGenerator);

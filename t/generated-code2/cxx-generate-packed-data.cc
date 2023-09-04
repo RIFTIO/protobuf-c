@@ -105,7 +105,7 @@ dump_test_field_numbers (void)
   DUMP_ONE (33554431)
   DUMP_ONE (33554432)
 #undef DUMP_ONE
-} 
+}
 
 static void dump_test_required_int32 (void)
 {
@@ -984,7 +984,7 @@ static void dump_test_packed_repeated_enum (void)
 static void dump_test_unknown_fields (void)
 {
   EmptyMess mess;
-  const google::protobuf::Message::Reflection *reflection = mess.GetReflection();
+  const google::protobuf::Reflection *reflection = mess.GetReflection();
   google::protobuf::UnknownFieldSet *fs = reflection->MutableUnknownFields(&mess);
 
 #if GOOGLE_PROTOBUF_VERSION >= 2001000

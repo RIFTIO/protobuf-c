@@ -76,7 +76,7 @@ namespace c {
 using internal::WireFormat;
 
 static void SetBytesVariables(const FieldDescriptor* descriptor,
-                              map<string, string>* variables,
+                              std::map<string, string>* variables,
                               struct riftfopts *riftopts) {
   (*variables)["name"] = FieldName(descriptor);
   (*variables)["default"] =
@@ -94,7 +94,7 @@ BytesFieldGenerator(const FieldDescriptor* descriptor)
   : FieldGenerator(descriptor) {
   SetBytesVariables(descriptor, &variables_, &riftopts);
   variables_["default_value"] = descriptor->has_default_value()
-                              ? GetDefaultValue() 
+                              ? GetDefaultValue()
                               : string("{0,NULL}");
 }
 
@@ -497,7 +497,7 @@ void BytesFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
     getter_func.append("_yang"); // Disambiguate with an _yang
   }
   vars["getter_fn"] = getter_func;
-  
+
   if (descriptor_->file()->package().length()) {
     vars["domain"] = MangleNameToUpper(descriptor_->file()->package());
   } else {
@@ -559,7 +559,7 @@ void BytesFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
         printer->Print(vars, "if (NULL == $pb_field$) {\n"
                              "  *len = 0; \n"
                              "  return NULL; \n"
-                             "}\n");  
+                             "}\n");
       }
 
       printer->Print(vars, "const ProtobufCFieldDescriptor* fd = boxed->s.message->base_concrete.descriptor->fields.$fname$;\n"
@@ -575,7 +575,7 @@ void BytesFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
                            "guint8 *data = g_malloc0(*len);\n"
                            "fd->ctype->pack(fd->ctype, fd, value, data); \n"
                            "return data; \n");
-                           
+
     } else {
       printer->Print(vars, " *len = $pb_field$.len; \n"
                            " if ($pb_field$.len == 0) {\n"
@@ -676,7 +676,7 @@ void BytesFieldGenerator::GenerateGiCSetterMethod(io::Printer* printer) const
         printer->Print(vars, "$pb_field$.len = len;\n"
                              "if ($pb_field$.len) {\n"
                              " $pb_field$.data = g_memdup($fname$, len); \n"
-                             "} else {\n" 
+                             "} else {\n"
                              "  $pb_field$.data = NULL;\n"
                              "}\n");
       }

@@ -271,11 +271,11 @@ MessageGenerator::MessageGenerator(const Descriptor* descriptor,
   : descriptor_(descriptor),
     dllexport_decl_(dllexport_decl),
     field_generators_(descriptor),
-    nested_generators_(new scoped_ptr<MessageGenerator>[
+    nested_generators_(new std::unique_ptr<MessageGenerator>[
       descriptor->nested_type_count()]),
-    enum_generators_(new scoped_ptr<EnumGenerator>[
+    enum_generators_(new std::unique_ptr<EnumGenerator>[
       descriptor->enum_type_count()]),
-    extension_generators_(new scoped_ptr<ExtensionGenerator>[
+    extension_generators_(new std::unique_ptr<ExtensionGenerator>[
       descriptor->extension_count()])
 {
   mdesc_to_riftmopts(descriptor_, &riftmopts_);
@@ -418,7 +418,7 @@ GeneratePBCMDStructTypedef(io::Printer* printer, const bool hide_from_gi)
     }
 
   }
-  
+
   const bool hide_child_from_gi = riftmopts_.hide_from_gi || hide_from_gi;
 
   for (int i = 0; i < descriptor_->nested_type_count(); i++) {
@@ -1174,7 +1174,7 @@ GenerateHelperFunctionDefinitions(io::Printer* printer, bool is_submessage, cons
 void MessageGenerator::
 GenerateMessageDescriptor(io::Printer* printer, bool generate_gi, const bool hide_from_gi)
 {
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["fullname"] = descriptor_->full_name();
   vars["classname"] = FullNameToC(descriptor_->full_name());
   vars["lcclassname"] = FullNameToLower(descriptor_->full_name());
@@ -1487,7 +1487,7 @@ GenerateMinikeyDescriptor(io::Printer* printer, const bool hide_from_gi)
 void MessageGenerator::
 GeneratePBCMDStructDefinition(io::Printer* printer)
 {
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["fullname"] = descriptor_->full_name();
   vars["classname"] = FullNameToC(descriptor_->full_name());
 
@@ -1518,7 +1518,7 @@ GeneratePBCMDStructDefinition(io::Printer* printer)
 
   printer->Print(vars, "struct RwProtobufCMessageBase_$classname$\n"
                  "{\n"
-                 " ProtobufCReferenceHeader ref_hdr; \n" 
+                 " ProtobufCReferenceHeader ref_hdr; \n"
                  " RwProtobufCMessageDescriptor_$classname$ *descriptor;\n"
                  "};\n");
 }
@@ -1537,7 +1537,7 @@ string MessageGenerator::GetGiCIdentifier(const char *operation)
 
 string MessageGenerator::GetGiDescTypeName()
 {
-  vector<string> pieces;
+  std::vector<string> pieces;
   SplitStringUsing(descriptor_->full_name(), ".", &pieces);
   string rv = "";
   for (unsigned i = 0; i < pieces.size(); i++) {
@@ -1554,7 +1554,7 @@ string MessageGenerator::GetGiDescTypeName()
 
 string MessageGenerator::GetGiDescIdentifier(const char *operation)
 {
-  vector<string> pieces;
+  std::vector<string> pieces;
   SplitStringUsing(descriptor_->full_name(), ".", &pieces);
   string rv = "";
   for (unsigned i = 0; i < pieces.size(); i++) {
@@ -1882,7 +1882,7 @@ void MessageGenerator::GenerateGiHDecls(io::Printer* printer, const bool hide_fr
   GenerateGiCopyFromMethodDecl(printer);
   GenerateGiHasFieldMethodDecl(printer);
   GenerateGiRetrieveDescriptorMethodDecl(printer);
-  
+
   for (unsigned i = 0; i < descriptor_->field_count(); i++) {
     const FieldDescriptor *field = descriptor_->field(i);
     field_generators_.get(field).GenerateGiHSupportMethodDecls(printer);
@@ -2098,7 +2098,7 @@ void MessageGenerator::GenerateGiFromPbufMethod(io::Printer* printer)
                        "{\n"
                        "  $classname$ *old_msg = boxed->s.message;\n"
                        "  ProtobufCGiMessageBase *gi_base = &boxed->s.gi_base;\n"
-                       "  RW_ASSERT(PROTOBUF_C_GI_BASE_IS_GOOD(gi_base));\n" 
+                       "  RW_ASSERT(PROTOBUF_C_GI_BASE_IS_GOOD(gi_base));\n"
                        "  if (gi_base->ref_count > 1) {\n"
                        "   PROTOBUF_C_GI_RAISE_EXCEPTION(error, $domain$, PROTO_GI_ERROR_XML_TO_PB_FAILURE, \"Failed PBUF->PB current refcount [%u]  \\n\", gi_base->ref_count);\n"
                        "   return;\n"
@@ -2191,7 +2191,7 @@ void MessageGenerator::GenerateGiSchemaChangeToDescriptorMethod(io::Printer* pri
   vars["change_to_descriptor"] = GetGiCIdentifier("change_to_descriptor");
   vars["gi_tname"] = gi_typename_;
   vars["gi_desc_tname"] = GetGiDescTypeName();
-  
+
 
   printer->Print(vars, "const ProtobufCMessageDescriptor* $change_to_descriptor$(const $gi_desc_tname$* schema)\n"
                        "{\n"
@@ -2237,7 +2237,7 @@ void MessageGenerator::GenerateGiCopyFromMethod(io::Printer* printer)
                        "{\n"
                        "  PROTOBUF_C_GI_CHECK_FOR_ERROR(other, err, $domain$);\n\n"
                        "  ProtobufCGiMessageBase *gi_base = &boxed->s.gi_base;\n"
-                       "  RW_ASSERT(PROTOBUF_C_GI_BASE_IS_GOOD(gi_base));\n" 
+                       "  RW_ASSERT(PROTOBUF_C_GI_BASE_IS_GOOD(gi_base));\n"
                        "  if (gi_base->ref_count > 1) {\n"
                        "     PROTOBUF_C_GI_RAISE_EXCEPTION(err, $domain$, PROTO_GI_ERROR_FAILURE, \"Failed CopyFrom current refcount [%u]  \\n\", gi_base->ref_count);\n"
                        "    return;\n"

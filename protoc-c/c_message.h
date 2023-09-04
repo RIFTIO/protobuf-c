@@ -146,7 +146,7 @@ class MessageGenerator {
 
   void GenerateMiniKeyStructDefinition(io::Printer* printer, const bool hide_from_gi);
   void GenerateMinikeyDescriptor(io::Printer* printer, const bool hide_from_gi);
-  
+
   // Generate the MetaData Macro for this message and its fields.
   void GenerateMetaDataMacro(io::Printer* printer, bool generate_gi, const bool hide_from_gi);
 
@@ -203,9 +203,9 @@ class MessageGenerator {
   const Descriptor* descriptor_;
   string dllexport_decl_;
   FieldGeneratorMap field_generators_;
-  scoped_array<scoped_ptr<MessageGenerator> > nested_generators_;
-  scoped_array<scoped_ptr<EnumGenerator> > enum_generators_;
-  scoped_array<scoped_ptr<ExtensionGenerator> > extension_generators_;
+  std::unique_ptr<std::unique_ptr<MessageGenerator>[] > nested_generators_;
+  std::unique_ptr<std::unique_ptr<EnumGenerator>[] > enum_generators_;
+  std::unique_ptr<std::unique_ptr<ExtensionGenerator>[] > extension_generators_;
   bool gen_minikey_type_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MessageGenerator);

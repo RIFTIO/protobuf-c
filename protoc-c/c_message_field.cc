@@ -101,7 +101,7 @@ MessageFieldGenerator::~MessageFieldGenerator() {
 
 void MessageFieldGenerator::GenerateStructMembers(io::Printer* printer) const
 {
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["name"] = FieldName(descriptor_);
   if (riftopts.c_type[0]) {
     vars["type"] = riftopts.c_type[0];
@@ -148,7 +148,7 @@ string MessageFieldGenerator::GetDefaultValue(void) const
 }
 void MessageFieldGenerator::GenerateStaticInit(io::Printer* printer) const
 {
-  map<string, string> vars;
+  std::map<string, string> vars;
   vars["ucclassname"] = FullNameToUpper(descriptor_->message_type()->full_name());
   vars["pclassname"] = FullNameToC(descriptor_->containing_type()->full_name());
   vars["fieldname"] = FieldName(descriptor_) + FieldDeprecated(descriptor_);

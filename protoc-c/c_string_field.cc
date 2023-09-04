@@ -76,7 +76,7 @@ namespace c {
 using internal::WireFormat;
 
 static void SetStringVariables(const FieldDescriptor* descriptor,
-                               map<string, string>* variables,
+                               std::map<string, string>* variables,
                                struct riftfopts *riftopts) {
   (*variables)["name"] = FieldName(descriptor);
   (*variables)["default"] = FullNameToLower(descriptor->full_name())
@@ -438,7 +438,7 @@ void StringFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
     getter_func.append("_yang"); // Disambiguate with an _yang
   }
   vars["getter_fn"] = getter_func;
-  
+
   if (descriptor_->file()->package().length()) {
     vars["domain"] = MangleNameToUpper(descriptor_->file()->package());
   } else {

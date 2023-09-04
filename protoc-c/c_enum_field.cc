@@ -79,7 +79,7 @@ void get_enum_riftopts(const EnumDescriptor* descriptor, rw_eopts_t *rw_eopts);
 // TODO(kenton):  Factor out a "SetCommonFieldVariables()" to get rid of
 //   repeat code between this and the other field types.
 void SetEnumVariables(const FieldDescriptor* descriptor,
-                      map<string, string>* variables,
+                      std::map<string, string>* variables,
 		      struct riftfopts *riftopts) {
 
   (*variables)["name"] = FieldName(descriptor);
@@ -293,7 +293,7 @@ void EnumFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
     getter_func.append("_yang"); // Disambiguate with an _yang
   }
   vars["getter_fn"] = getter_func;
-  
+
   if (descriptor_->file()->package().length()) {
     vars["domain"] = MangleNameToUpper(descriptor_->file()->package());
   } else {
@@ -315,8 +315,8 @@ void EnumFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
                          " int i = 0; \n"
                          " for (i = 0; i < *len; i++) {\n"
                          "  enum_array[i] = $f_to_str$($pb_field$[i]);\n "
-                         " } \n" 
-                         " return (enum_array);\n"); 
+                         " } \n"
+                         " return (enum_array);\n");
   } else {
     printer->Print(vars, "return($f_to_str$($pb_field$));\n");
   }
@@ -368,7 +368,7 @@ void EnumFieldGenerator::GenerateGiCSetterMethod(io::Printer* printer) const
                            "  int i = 0; \n"
                            "  for (i = 0; i < len; i++) {\n"
                            "    $pb_field$[i] = $f_from_str$($fname$[i], err);\n"
-                           "  }\n" 
+                           "  }\n"
                            "}\n"
                            "$pb_qfield$ = len;\n");
     }
