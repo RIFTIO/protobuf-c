@@ -540,7 +540,7 @@ void BytesFieldGenerator::GenerateGiCGetterMethod(io::Printer* printer) const
                            "  fd->ctype->pack(fd->ctype, fd, value, data); \n"
                            "  g_ptr_array_add(l_bytes, g_byte_array_new_take(data, sz));\n");
     } else {
-      printer->Print(vars, "  g_ptr_array_add(l_bytes, g_byte_array_new_take(g_memdup($pb_field$[i].data, $pb_field$[i].len), $pb_field$[i].len));\n");
+      printer->Print(vars, "  g_ptr_array_add(l_bytes, g_byte_array_new_take(g_memdup2($pb_field$[i].data, $pb_field$[i].len), $pb_field$[i].len));\n");
     }
 
     printer->Print(vars, "}\n"
@@ -655,7 +655,7 @@ void BytesFieldGenerator::GenerateGiCSetterMethod(io::Printer* printer) const
                              "for (i = 0; i < $fname$->len; i++) {\n"
                              "  GByteArray *bytes = (GByteArray *)($fname$->pdata[i]); \n"
                              "  $pb_field$[i].len = bytes->len; \n"
-                             "  $pb_field$[i].data = g_memdup(bytes->data, bytes->len); \n"
+                             "  $pb_field$[i].data = g_memdup2(bytes->data, bytes->len); \n"
                              "}\n");
       }
     }
@@ -675,7 +675,7 @@ void BytesFieldGenerator::GenerateGiCSetterMethod(io::Printer* printer) const
       else {
         printer->Print(vars, "$pb_field$.len = len;\n"
                              "if ($pb_field$.len) {\n"
-                             " $pb_field$.data = g_memdup($fname$, len); \n"
+                             " $pb_field$.data = g_memdup2($fname$, len); \n"
                              "} else {\n"
                              "  $pb_field$.data = NULL;\n"
                              "}\n");

@@ -269,7 +269,7 @@ void FileGenerator::GenerateSource(io::Printer* printer, bool const generateGI)
     printer->Print(vars, "GQuark\n"
                    "$gi_prefix$error_quark (void)\n"
                    "{\n"
-                   "  static volatile gsize quark = 0;\n\n"
+                   "  static gsize quark = 0;\n\n"
                    "  if (g_once_init_enter (&quark))\n"
                    "    g_once_init_leave (&quark,\n"
                    "                    g_quark_from_static_string (\"$gi_prefix$Error\"));\n"
