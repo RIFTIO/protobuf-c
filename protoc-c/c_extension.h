@@ -78,6 +78,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 // Generates code for an extension, which may be within the scope of some
 // message or may be at file scope.  This is much simpler than FieldGenerator
 // since extensions are just simple identifiers with interesting types.

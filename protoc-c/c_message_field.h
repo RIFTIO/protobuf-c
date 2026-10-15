@@ -72,6 +72,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 class MessageFieldGenerator : public FieldGenerator {
  public:
   explicit MessageFieldGenerator(const FieldDescriptor* descriptor);

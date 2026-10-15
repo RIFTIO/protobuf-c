@@ -72,6 +72,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 class EnumFieldGenerator : public FieldGenerator {
  public:
   explicit EnumFieldGenerator(const FieldDescriptor* descriptor);

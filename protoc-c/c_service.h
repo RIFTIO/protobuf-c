@@ -78,6 +78,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 class ServiceGenerator {
  public:
   // See generator.cc for the meaning of dllexport_decl.

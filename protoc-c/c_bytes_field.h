@@ -72,6 +72,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 class BytesFieldGenerator : public FieldGenerator {
  public:
   explicit BytesFieldGenerator(const FieldDescriptor* descriptor);

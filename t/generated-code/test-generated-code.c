@@ -5,19 +5,19 @@
 
 int main()
 {
-  Foo__Person person = __FOO__PERSON__INTERNAL_INITIALIZER__;
+  Foo__Person person = __FOO__PERSON__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   Foo__Person *person2;
   unsigned char simple_pad[8];
   size_t size, size2;
   unsigned char *packed;
-  ProtobufCBufferSimple bs = PROTOBUF_C_BUFFER_SIMPLE_INIT (simple_pad);
+  ProtobufCBufferSimple bs = PROTOBUF_C_BUFFER_SIMPLE_INIT (NULL, simple_pad);
 
   person.name = "dave b";
   person.id = 42;
-  size = foo__person__get_packed_size (&person);
+  size = foo__person__get_packed_size (NULL, &person);
   packed = malloc (size);
   assert (packed);
-  size2 = foo__person__pack (&person, packed);
+  size2 = foo__person__pack (NULL, &person, packed);
   assert (size == size2);
   foo__person__pack_to_buffer (&person, &bs.base);
   assert (bs.len == size);

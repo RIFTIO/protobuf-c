@@ -65,6 +65,8 @@ protobuf_c_libprotobuf_c_la_LDFLAGS = $(AM_LDFLAGS) \
 protobuf-c/rift/rw_delta.pb-c.c protobuf-c/rift/rw_delta.pb-c.h: $(top_builddir)/protoc-c/protoc-c$(EXEEXT) $(top_srcdir)/protobuf-c/rift/rw_delta.proto
 	$(AM_V_GEN)$(top_builddir)/protoc-c/protoc-c$(EXEEXT) -I$(top_srcdir) --c_out=$(top_builddir) $(top_srcdir)/protobuf-c/rift/rw_delta.proto
 
+EXTRA_DIST += protobuf-c/rift/rw_delta.proto
+
 pkgconfig_DATA += protobuf-c/libprotobuf-c.pc
 CLEANFILES += protobuf-c/libprotobuf-c.pc
 EXTRA_DIST += protobuf-c/libprotobuf-c.pc.in
@@ -120,11 +122,13 @@ LOG_COMPILER = $(VALGRIND)
 check_PROGRAMS += \
 	t/generated-code/test-generated-code \
 	t/generated-code2/test-generated-code2 \
+	t/security/test-security \
 	t/version/version
 
 TESTS += \
 	t/generated-code/test-generated-code \
 	t/generated-code2/test-generated-code2 \
+	t/security/test-security \
 	t/version/version
 
 t_generated_code_test_generated_code_SOURCES = \
@@ -137,6 +141,12 @@ t_generated_code2_test_generated_code2_SOURCES = \
 	t/generated-code2/test-generated-code2.c \
 	t/test-full.pb-c.c
 t_generated_code2_test_generated_code2_LDADD = \
+	protobuf-c/libprotobuf-c.la
+
+t_security_test_security_SOURCES = \
+	t/security/test-security.c \
+	t/test-full.pb-c.c
+t_security_test_security_LDADD = \
 	protobuf-c/libprotobuf-c.la
 
 noinst_PROGRAMS += \

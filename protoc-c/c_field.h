@@ -103,6 +103,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 class FieldGenerator {
  public:
 
@@ -159,7 +161,7 @@ class FieldGenerator {
   void GenerateGiHSupportMethodDecls(io::Printer* printer) const;
   void GenerateGiCSupportMethodDefs(io::Printer* printer) const;
   virtual void GenerateGiCreateMethod(io::Printer* printer) const { };
-  virtual string GetGiCreateParameterList() const { };
+  virtual string GetGiCreateParameterList() const { return string(); }
   virtual bool HasLengthOut() const;
 
  protected:

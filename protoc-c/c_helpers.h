@@ -75,6 +75,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 // Returns the non-nested type name for the given type.  If "qualified" is
 // true, prefix the type with the full namespace.  For example, if you had:
 //   package foo.bar;

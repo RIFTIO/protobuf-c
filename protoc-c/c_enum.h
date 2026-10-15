@@ -77,6 +77,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 struct rw_eopts_t {
   string rw_yang_enum;
   string rw_c_prefix;

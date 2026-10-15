@@ -83,6 +83,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 /*
  * Riftware file options.
  */

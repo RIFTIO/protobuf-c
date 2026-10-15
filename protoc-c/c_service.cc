@@ -223,16 +223,16 @@ static void parseriftopts(const MethodDescriptor *method, const ServiceDescripto
 		  RIFTTRACE("method number %u\n", (unsigned int)ropt->varint());
 		  if (ropt->varint() > 0xffff) {
 		    fprintf(stderr, 
-			    "*** protoc-c: method number %Lu too big for method '%s' of service '%s'\n",
-			    (uint64_t)ropt->varint(), 
+			    "*** protoc-c: method number %llu too big for method '%s' of service '%s'\n",
+			    (unsigned long long)ropt->varint(), 
 			    method->full_name().c_str(),
 			    descriptor_->full_name().c_str());
 		    exit(1);
 		  }
 		  if (ropt->varint()==0) {
 		    fprintf(stderr, 
-			    "*** protoc-c: method number %Lu not allowed for method '%s' of service '%s'\n",
-			    (uint64_t)ropt->varint(), 
+			    "*** protoc-c: method number %llu not allowed for method '%s' of service '%s'\n",
+			    (unsigned long long)ropt->varint(), 
 			    method->full_name().c_str(),
 			    descriptor_->full_name().c_str());
 		    exit(1);

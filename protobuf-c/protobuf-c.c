@@ -52,6 +52,7 @@
 #include <stdio.h>      /* for snprintf */
 #include <ctype.h>      /* for isspace */
 #include <inttypes.h>   /* for SCNd64... */
+#include <limits.h>     /* for INT_MAX */
 #include <time.h>       /* for time, localtime... */
 
 #include "rift-protobuf-c.h"
@@ -1029,9 +1030,9 @@ static inline uint32_t
 zigzag32(int32_t v)
 {
   if (v < 0) {
-    return ((uint32_t) (-v)) * 2 - 1;
+    return (-(uint32_t)v) * 2 - 1;
   }
-  return v * 2;
+  return (uint32_t)v * 2;
 }
 
 /**
@@ -1093,9 +1094,9 @@ static inline uint64_t
 zigzag64(int64_t v)
 {
   if (v < 0) {
-    return ((uint64_t) (-v)) * 2 - 1;
+    return (-(uint64_t)v) * 2 - 1;
   }
-  return v * 2;
+  return (uint64_t)v * 2;
 }
 
 /**
@@ -3277,6 +3278,11 @@ parse_tag_and_wiretype(size_t len,
   unsigned shift = 4;
   unsigned rv;
 
+  /* 0 is not a valid tag value */
+  if ((data[0] & 0xf8) == 0) {
+    return 0;
+  }
+
   *wiretype_out = data[0] & 7;
   if ((data[0] & 0x80) == 0) {
     *tag_out = tag;
@@ -3284,10 +3290,10 @@ parse_tag_and_wiretype(size_t len,
   }
   for (rv = 1; rv < max_rv; rv++) {
     if (data[rv] & 0x80) {
-      tag |= (data[rv] & 0x7f) << shift;
+      tag |= (uint32_t)(data[rv] & 0x7f) << shift;
       shift += 7;
     } else {
-      tag |= data[rv] << shift;
+      tag |= (uint32_t)data[rv] << shift;
       *tag_out = tag;
       return rv + 1;
     }
@@ -3316,12 +3322,12 @@ scan_length_prefixed_data(ProtobufCInstance* instance,
 {
   unsigned hdr_max = len < 5 ? len : 5;
   unsigned hdr_len;
-  uint32_t val = 0;
+  size_t val = 0;
   unsigned i;
   unsigned shift = 0;
 
   for (i = 0; i < hdr_max; i++) {
-    val |= (data[i] & 0x7f) << shift;
+    val |= ((size_t)data[i] & 0x7f) << shift;
     shift += 7;
     if ((data[i] & 0x80) == 0) {
       break;
@@ -3334,9 +3340,18 @@ scan_length_prefixed_data(ProtobufCInstance* instance,
   }
   hdr_len = i + 1;
   *prefix_len_out = hdr_len;
+  if (val > INT_MAX) {
+    /* Protobuf messages should always be less than 2 GiB in size.  Return
+     * early so that hdr_len + val cannot overflow (CVE-2022-48468). */
+    PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
+                             "length prefix of %lu is too large",
+                             (unsigned long) val);
+    return 0;
+  }
   if (hdr_len + val > len) {
     PROTOBUF_C_MESSAGE_ERROR(instance, NULL, NULL,
-                             "data too short after length-prefix of %u", val);
+                             "data too short after length-prefix of %lu",
+                             (unsigned long) val);
     return 0;
   }
   return hdr_len + val;
@@ -4529,6 +4544,13 @@ parse_required_member(ProtobufCInstance* instance,
   const uint8_t *data = scanned_member->data;
   ProtobufCWireType wire_type = scanned_member->wire_type;
 
+  /* Never let len - length_prefix_len underflow (CVE-2022-48468). */
+  if (len < scanned_member->length_prefix_len) {
+    PROTOBUF_C_MESSAGE_ERROR(instance, NULL, fdesc,
+                             "length-prefixed data shorter than its prefix");
+    return FALSE;
+  }
+
   const ProtobufCCTypeDescriptor *ctype = fdesc->ctype;
   if (ctype) {
     PROTOBUF_C_ASSERT(PROTOBUF_C_IS_COMPLEX_FIELD(fdesc));
@@ -4761,6 +4783,9 @@ parse_oneof_member (ProtobufCInstance* instance,
         int_range_lookup(message->descriptor->n_field_ranges,
                          message->descriptor->field_ranges,
                          *oneof_case);
+    if (field_index < 0) {
+      return FALSE;
+    }
     const ProtobufCFieldDescriptor *old_field =
         message->descriptor->fields + field_index;
     switch (old_field->type) {
@@ -4992,6 +5017,12 @@ parse_packed_repeated_member(ProtobufCInstance* instance,
   size_t *p_n = STRUCT_MEMBER_PTR(size_t, message, fdesc->quantifier_offset);
   size_t sizeof_elt = sizeof_elt_in_repeated_array(fdesc);
 
+  if (scanned_member->len < scanned_member->length_prefix_len) {
+    PROTOBUF_C_MESSAGE_ERROR(instance, message, fdesc,
+                             "length-prefixed data shorter than its prefix");
+    return FALSE;
+  }
+
   char *array;
   if (fdesc->rw_flags&RW_PROTOBUF_FOPT_INLINE) {
     array = (char *) member + sizeof_elt * (*p_n);
@@ -5100,14 +5131,17 @@ parse_packed_repeated_member(ProtobufCInstance* instance,
       }
       break;
     case PROTOBUF_C_TYPE_BOOL:
-      count = rem;
-      for (i = 0; i < count; i++) {
-        if (at[i] > 1) {
+      /* Packed bools are varints (upstream 733ae77). */
+      while (rem > 0) {
+        unsigned s = scan_varint(rem, at);
+        if (s == 0) {
           PROTOBUF_C_MESSAGE_ERROR(instance, message, fdesc,
                                    "bad packed-repeated boolean value");
           return FALSE;
         }
-        ((protobuf_c_boolean *) array)[i] = at[i];
+        ((protobuf_c_boolean *) array)[count++] = parse_boolean(s, at);
+        at += s;
+        rem -= s;
       }
       break;
     default:

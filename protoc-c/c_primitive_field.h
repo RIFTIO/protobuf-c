@@ -73,6 +73,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 
 class PrimitiveFieldGenerator : public FieldGenerator {
  public:

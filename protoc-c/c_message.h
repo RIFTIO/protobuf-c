@@ -78,6 +78,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 class EnumGenerator;           // enum.h
 class ExtensionGenerator;      // extension.h
 

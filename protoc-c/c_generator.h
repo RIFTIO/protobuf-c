@@ -73,6 +73,8 @@ namespace protobuf {
 namespace compiler {
 namespace c {
 
+using std::string;
+
 
 // CodeGenerator implementation which generates a C++ source file and
 // header.  If you create your own protocol compiler binary and you want

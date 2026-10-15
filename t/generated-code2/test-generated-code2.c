@@ -62,15 +62,15 @@ test_compare_pack_methods (ProtobufCMessage *message,
                            uint8_t **packed_out)
 {
   unsigned char scratch[16];
-  ProtobufCBufferSimple bs = PROTOBUF_C_BUFFER_SIMPLE_INIT (scratch);
-  size_t siz1 = protobuf_c_message_get_packed_size (message);
+  ProtobufCBufferSimple bs = PROTOBUF_C_BUFFER_SIMPLE_INIT (NULL, scratch);
+  size_t siz1 = protobuf_c_message_get_packed_size (NULL, message);
   size_t siz2;
   size_t siz3 = protobuf_c_message_pack_to_buffer (message, &bs.base);
   void *packed1 = malloc (siz1);
   void *rv;
   assert (packed1 != NULL);
   assert (siz1 == siz3);
-  siz2 = protobuf_c_message_pack (message, packed1);
+  siz2 = protobuf_c_message_pack (NULL, message, packed1);
   assert (siz1 == siz2);
   assert (bs.len == siz1);
   assert (memcmp (bs.data, packed1, siz1) == 0);
@@ -115,7 +115,7 @@ static void test_enum_small (void)
 
 #define DO_TEST(UC_VALUE) \
   do{ \
-    Foo__TestMessRequiredEnumSmall small = __FOO__TEST_MESS_REQUIRED_ENUM_SMALL__INTERNAL_INITIALIZER__; \
+    Foo__TestMessRequiredEnumSmall small = __FOO__TEST_MESS_REQUIRED_ENUM_SMALL__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
     size_t len; \
     uint8_t *data; \
     Foo__TestMessRequiredEnumSmall *unpacked; \
@@ -137,7 +137,7 @@ static void test_enum_small (void)
 
 static void test_enum_big (void)
 {
-  Foo__TestMessRequiredEnum big = __FOO__TEST_MESS_REQUIRED_ENUM__INTERNAL_INITIALIZER__;
+  Foo__TestMessRequiredEnum big = __FOO__TEST_MESS_REQUIRED_ENUM__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   size_t len;
   uint8_t *data;
   Foo__TestMessRequiredEnum *unpacked;
@@ -175,7 +175,7 @@ static void test_field_numbers (void)
 
 #define DO_ONE_TEST(num, exp_len) \
   { \
-    Foo__TestFieldNo##num t = __FOO__TEST_FIELD_NO##num##__INTERNAL_INITIALIZER__; \
+    Foo__TestFieldNo##num t = __FOO__TEST_FIELD_NO##num##__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
     Foo__TestFieldNo##num *t2; \
     t.test = "tst"; \
     t2 = test_compare_pack_methods ((ProtobufCMessage*)(&t), &len, &data); \
@@ -200,7 +200,7 @@ static void test_field_numbers (void)
 
 #define DO_TEST_REQUIRED(Type, TYPE, type, value, example_packed_data, equal_func) \
   do{ \
-  Foo__TestMessRequired##Type opt = __FOO__TEST_MESS_REQUIRED_##TYPE##__INTERNAL_INITIALIZER__; \
+  Foo__TestMessRequired##Type opt = __FOO__TEST_MESS_REQUIRED_##TYPE##__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
   Foo__TestMessRequired##Type *mess; \
   size_t len; uint8_t *data; \
   opt.test = value; \
@@ -413,7 +413,7 @@ static void test_required_bytes (void)
 
 static void test_required_SubMess (void)
 {
-  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_REQUIRED (Message, MESSAGE, message, value, example_packed_data, submesses_equals)
   submess.test = 0;
@@ -426,7 +426,7 @@ static void test_required_SubMess (void)
 /* === Optional type fields === */
 static void test_empty_optional (void)
 {
-  Foo__TestMessOptional mess = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__;
+  Foo__TestMessOptional mess = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   size_t len;
   uint8_t *data;
   Foo__TestMessOptional *mess2 = test_compare_pack_methods (&mess.base, &len, &data);
@@ -438,7 +438,7 @@ static void test_empty_optional (void)
 
 #define DO_TEST_OPTIONAL(base_member, value, example_packed_data, equal_func) \
   do{ \
-  Foo__TestMessOptional opt = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__; \
+  Foo__TestMessOptional opt = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
   Foo__TestMessOptional *mess; \
   size_t len; uint8_t *data; \
   opt.has_##base_member = 1; \
@@ -643,7 +643,7 @@ static void test_optional_TestEnum (void)
 
 #define DO_TEST_OPTIONAL__NO_HAS(base_member, value, example_packed_data, equal_func) \
   do{ \
-  Foo__TestMessOptional opt = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__; \
+  Foo__TestMessOptional opt = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
   Foo__TestMessOptional *mess; \
   size_t len; uint8_t *data; \
   opt.base_member = value; \
@@ -677,7 +677,7 @@ static void test_optional_bytes (void)
 }
 static void test_optional_SubMess (void)
 {
-  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_OPTIONAL__NO_HAS (test_message, value, example_packed_data, submesses_equals)
   submess.test = 0;
@@ -690,7 +690,7 @@ static void test_optional_SubMess (void)
 /* === Oneof type fields === */
 static void test_empty_oneof (void)
 {
-  Foo__TestMessOneof mess = __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__;
+  Foo__TestMessOneof mess = __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   size_t len;
   uint8_t *data;
   Foo__TestMessOneof *mess2 = test_compare_pack_methods (&mess.base, &len, &data);
@@ -717,7 +717,7 @@ static void test_empty_oneof (void)
 
 #define DO_TEST_ONEOF(member, MEMBER, value, example_packed_data, assign, equal_func) \
   DO_TEST_GENERIC_ONEOF(Foo__TestMessOneof, \
-                __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__, \
+                __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0), \
                 foo__test_mess_oneof__free_unpacked, \
                 test_oneof_case, \
                 FOO__TEST_MESS_ONEOF__TEST_ONEOF_##MEMBER, \
@@ -726,7 +726,7 @@ static void test_empty_oneof (void)
 
 #define DO_TEST_ONEOF_REF_VAL(member, MEMBER, value, example_packed_data, assign, equal_func) \
   DO_TEST_GENERIC_ONEOF(Foo__TestMessOneof, \
-                __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__, \
+                __FOO__TEST_MESS_ONEOF__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0), \
                 foo__test_mess_oneof__free_unpacked, \
                 test_oneof_case, \
                 FOO__TEST_MESS_ONEOF__TEST_ONEOF_##MEMBER, \
@@ -944,7 +944,7 @@ static void test_oneof_bytes (void)
 }
 static void test_oneof_SubMess (void)
 {
-  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
 #define DO_TEST(value, example_packed_data) \
   DO_TEST_ONEOF_REF_VAL (test_message, TEST_MESSAGE, value, example_packed_data, GENERIC_ASSIGN, submesses_equals)
   submess.test = 0;
@@ -968,7 +968,7 @@ static void test_oneof_merge (void)
   DO_TEST (666, test_int32, TEST_INT32, NUMERIC_EQUALS, test_oneof_merge_int32);
   DO_TEST ("", test_string, TEST_STRING, STRING_EQUALS, test_oneof_merge_string);
 
-  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  Foo__SubMess submess = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   submess.test = 42;
   DO_TEST (&submess, test_message, TEST_MESSAGE, submesses_equals, test_oneof_merge_submess);
 
@@ -982,7 +982,7 @@ static void test_oneof_merge (void)
                          static_array, example_packed_data, \
                          equals_macro) \
   do{ \
-  Foo__TestMess mess = __FOO__TEST_MESS__INTERNAL_INITIALIZER__; \
+  Foo__TestMess mess = __FOO__TEST_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
   Foo__TestMess *mess2; \
   size_t len; \
   uint8_t *data; \
@@ -1000,7 +1000,7 @@ static void test_oneof_merge (void)
 
 static void test_empty_repeated (void)
 {
-  Foo__TestMess mess = __FOO__TEST_MESS__INTERNAL_INITIALIZER__;
+  Foo__TestMess mess = __FOO__TEST_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   size_t len;
   uint8_t *data;
   Foo__TestMess *mess2 = test_compare_pack_methods (&mess.base, &len, &data);
@@ -1252,9 +1252,9 @@ static void test_repeated_bytes (void)
 
 static void test_repeated_SubMess (void)
 {
-  static Foo__SubMess submess0 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
-  static Foo__SubMess submess1 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
-  static Foo__SubMess submess2 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
+  static Foo__SubMess submess0 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+  static Foo__SubMess submess1 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+  static Foo__SubMess submess2 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   static Foo__SubMess *submesses[3] = { &submess0, &submess1, &submess2 };
 
 #define DO_TEST(static_array, example_packed_data) \
@@ -1275,7 +1275,7 @@ static void test_repeated_SubMess (void)
                          static_array, example_packed_data, \
                          equals_macro) \
   do{ \
-  Foo__TestMessPacked mess = __FOO__TEST_MESS_PACKED__INTERNAL_INITIALIZER__; \
+  Foo__TestMessPacked mess = __FOO__TEST_MESS_PACKED__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0); \
   Foo__TestMessPacked *mess2; \
   size_t len; \
   uint8_t *data; \
@@ -1500,59 +1500,53 @@ static void test_packed_repeated_TestEnum (void)
 }
 
 
+static void
+check_unknown_field (const ProtobufCMessage *msg, unsigned index,
+                     uint32_t tag, ProtobufCWireType wire_type,
+                     size_t len, const char *data)
+{
+  const ProtobufCMessageUnknownField *uf =
+    protobuf_c_message_unknown_get_index (msg, index);
+  assert (uf != NULL);
+  assert (uf->base_.tag == tag);
+  assert (uf->serialized.wire_type == wire_type);
+  assert (uf->serialized.len == len);
+  assert (memcmp (uf->serialized.data, data, len) == 0);
+}
+
 static void test_unknown_fields (void)
 {
-  static Foo__EmptyMess mess = __FOO__EMPTY_MESS__INTERNAL_INITIALIZER__;
-  static Foo__EmptyMess *mess2;
-  ProtobufCMessageUnknownField fields[2];
+  Foo__EmptyMess mess;
+  Foo__EmptyMess *mess2;
   size_t len; uint8_t *data;
 
-  mess.base.n_unknown_fields = 2;
-  mess.base.unknown_fields = fields;
-
-  fields[0].tag = 5454;
-  fields[0].wire_type = PROTOBUF_C_WIRE_TYPE_VARINT;
-  fields[0].len = 2;
-  fields[0].data = (uint8_t*)"\377\1";
-  fields[1].tag = 5555;
-  fields[1].wire_type = PROTOBUF_C_WIRE_TYPE_32BIT;
-  fields[1].len = 4;
-  fields[1].data = (uint8_t*)"\4\1\0\0";
+  foo__empty_mess__init (&mess);
+  assert (protobuf_c_message_append_unknown_serialized (NULL, &mess.base, 5454,
+            PROTOBUF_C_WIRE_TYPE_VARINT, (const uint8_t *) "\377\1", 2));
+  assert (protobuf_c_message_append_unknown_serialized (NULL, &mess.base, 5555,
+            PROTOBUF_C_WIRE_TYPE_32BIT, (const uint8_t *) "\4\1\0\0", 4));
   mess2 = test_compare_pack_methods (&mess.base, &len, &data);
-  assert (mess2->base.n_unknown_fields == 2);
-  assert (mess2->base.unknown_fields[0].tag == 5454);
-  assert (mess2->base.unknown_fields[0].wire_type == PROTOBUF_C_WIRE_TYPE_VARINT);
-  assert (mess2->base.unknown_fields[0].len == 2);
-  assert (memcmp (mess2->base.unknown_fields[0].data, fields[0].data, 2) == 0);
-  assert (mess2->base.unknown_fields[1].tag == 5555);
-  assert (mess2->base.unknown_fields[1].wire_type == PROTOBUF_C_WIRE_TYPE_32BIT);
-  assert (mess2->base.unknown_fields[1].len == 4);
-  assert (memcmp (mess2->base.unknown_fields[1].data, fields[1].data, 4) == 0);
+  assert (protobuf_c_message_unknown_get_count (&mess2->base) == 2);
+  check_unknown_field (&mess2->base, 0, 5454, PROTOBUF_C_WIRE_TYPE_VARINT, 2, "\377\1");
+  check_unknown_field (&mess2->base, 1, 5555, PROTOBUF_C_WIRE_TYPE_32BIT, 4, "\4\1\0\0");
   TEST_VERSUS_STATIC_ARRAY (len, data, test_unknown_fields_0);
   free (data);
   foo__empty_mess__free_unpacked (NULL, mess2);
+  foo__empty_mess__free_unpacked_usebody (NULL, &mess);
 
-  fields[0].tag = 6666;
-  fields[0].wire_type = PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED;
-  fields[0].len = 9;
-  fields[0].data = (uint8_t*)"\10xxxxxxxx";
-  fields[1].tag = 7777;
-  fields[1].wire_type = PROTOBUF_C_WIRE_TYPE_64BIT;
-  fields[1].len = 8;
-  fields[1].data = (uint8_t*)"\1\1\1\0\0\0\0\0";
+  foo__empty_mess__init (&mess);
+  assert (protobuf_c_message_append_unknown_serialized (NULL, &mess.base, 6666,
+            PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED, (const uint8_t *) "\10xxxxxxxx", 9));
+  assert (protobuf_c_message_append_unknown_serialized (NULL, &mess.base, 7777,
+            PROTOBUF_C_WIRE_TYPE_64BIT, (const uint8_t *) "\1\1\1\0\0\0\0\0", 8));
   mess2 = test_compare_pack_methods (&mess.base, &len, &data);
-  assert (mess2->base.n_unknown_fields == 2);
-  assert (mess2->base.unknown_fields[0].tag == 6666);
-  assert (mess2->base.unknown_fields[0].wire_type == PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED);
-  assert (mess2->base.unknown_fields[0].len == 9);
-  assert (memcmp (mess2->base.unknown_fields[0].data, fields[0].data, 9) == 0);
-  assert (mess2->base.unknown_fields[1].tag == 7777);
-  assert (mess2->base.unknown_fields[1].wire_type == PROTOBUF_C_WIRE_TYPE_64BIT);
-  assert (mess2->base.unknown_fields[1].len == 8);
-  assert (memcmp (mess2->base.unknown_fields[1].data, fields[1].data, 8) == 0);
+  assert (protobuf_c_message_unknown_get_count (&mess2->base) == 2);
+  check_unknown_field (&mess2->base, 0, 6666, PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED, 9, "\10xxxxxxxx");
+  check_unknown_field (&mess2->base, 1, 7777, PROTOBUF_C_WIRE_TYPE_64BIT, 8, "\1\1\1\0\0\0\0\0");
   TEST_VERSUS_STATIC_ARRAY (len, data, test_unknown_fields_1);
   free (data);
   foo__empty_mess__free_unpacked (NULL, mess2);
+  foo__empty_mess__free_unpacked_usebody (NULL, &mess);
 }
 
 static void
@@ -1653,7 +1647,7 @@ assert_required_default_values_are_default (Foo__DefaultRequiredValues *mess)
 static void
 test_required_default_values (void)
 {
-  Foo__DefaultRequiredValues mess = __FOO__DEFAULT_REQUIRED_VALUES__INTERNAL_INITIALIZER__;
+  Foo__DefaultRequiredValues mess = __FOO__DEFAULT_REQUIRED_VALUES__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   Foo__DefaultRequiredValues *mess2;
   size_t len; uint8_t *data;
   assert_required_default_values_are_default (&mess);
@@ -1691,7 +1685,7 @@ assert_optional_default_values_are_default (Foo__DefaultOptionalValues *mess)
 static void
 test_optional_default_values (void)
 {
-  Foo__DefaultOptionalValues mess = __FOO__DEFAULT_OPTIONAL_VALUES__INTERNAL_INITIALIZER__;
+  Foo__DefaultOptionalValues mess = __FOO__DEFAULT_OPTIONAL_VALUES__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   Foo__DefaultOptionalValues *mess2;
   size_t len; uint8_t *data;
   assert_optional_default_values_are_default (&mess);
@@ -1712,7 +1706,7 @@ assert_optional_lowercase_enum_default_value_is_default (Foo__LowerCase *mess)
 static void
 test_optional_lowercase_enum_default_value (void)
 {
-  Foo__LowerCase mess = __FOO__LOWER_CASE__INTERNAL_INITIALIZER__;
+  Foo__LowerCase mess = __FOO__LOWER_CASE__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   Foo__LowerCase *mess2;
   size_t len; uint8_t *data;
   assert_optional_lowercase_enum_default_value_is_default (&mess);
@@ -1726,9 +1720,9 @@ test_optional_lowercase_enum_default_value (void)
 static void
 test_field_merge (void)
 {
-   Foo__TestMessOptional msg1 = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__;
-   Foo__SubMess sub1 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
-   Foo__SubMess__SubSubMess subsub1 = __FOO__SUB_MESS__SUB_SUB_MESS__INTERNAL_INITIALIZER__;
+   Foo__TestMessOptional msg1 = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+   Foo__SubMess sub1 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+   Foo__SubMess__SubSubMess subsub1 = __FOO__SUB_MESS__SUB_SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
 
    msg1.has_test_int32 = 1;
    msg1.test_int32 = 12345;
@@ -1751,11 +1745,11 @@ test_field_merge (void)
    subsub1.rep = arr1;
    subsub1.str1 = "test";
 
-   size_t msg_size = foo__test_mess_optional__get_packed_size (&msg1);
+   size_t msg_size = foo__test_mess_optional__get_packed_size (NULL, &msg1);
 
-   Foo__TestMessOptional msg2 = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__;
-   Foo__SubMess sub2 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__;
-   Foo__SubMess__SubSubMess subsub2 = __FOO__SUB_MESS__SUB_SUB_MESS__INTERNAL_INITIALIZER__;
+   Foo__TestMessOptional msg2 = __FOO__TEST_MESS_OPTIONAL__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+   Foo__SubMess sub2 = __FOO__SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+   Foo__SubMess__SubSubMess subsub2 = __FOO__SUB_MESS__SUB_SUB_MESS__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
 
    msg2.has_test_int64 = 1;
    msg2.test_int64 = 2;
@@ -1772,12 +1766,12 @@ test_field_merge (void)
    subsub2.has_val1 = 1;
    subsub2.val1 = 1;
 
-   msg_size += foo__test_mess_optional__get_packed_size (&msg2);
+   msg_size += foo__test_mess_optional__get_packed_size (NULL, &msg2);
 
    uint8_t *packed_buffer = (uint8_t *)malloc (msg_size);
 
-   size_t packed_size = foo__test_mess_optional__pack (&msg1, packed_buffer);
-   packed_size += foo__test_mess_optional__pack (&msg2, packed_buffer + packed_size);
+   size_t packed_size = foo__test_mess_optional__pack (NULL, &msg1, packed_buffer);
+   packed_size += foo__test_mess_optional__pack (NULL, &msg2, packed_buffer + packed_size);
 
    assert (packed_size == msg_size);
 
@@ -1820,9 +1814,9 @@ test_submessage_merge (void)
    merged = foo__test_mess_sub_mess__unpack
       (NULL, sizeof (test_submess_unmerged1), test_submess_unmerged1);
 
-   size = foo__test_mess_sub_mess__get_packed_size(merged);
+   size = foo__test_mess_sub_mess__get_packed_size(NULL, merged);
    packed = malloc (size);
-   foo__test_mess_sub_mess__pack (merged, packed);
+   foo__test_mess_sub_mess__pack (NULL, merged, packed);
 
    assert (size == sizeof (test_submess_merged1));
    assert (memcmp (packed, test_submess_merged1, size) == 0);
@@ -1833,9 +1827,9 @@ test_submessage_merge (void)
    merged = foo__test_mess_sub_mess__unpack
       (NULL, sizeof (test_submess_unmerged2), test_submess_unmerged2);
 
-   size = foo__test_mess_sub_mess__get_packed_size(merged);
+   size = foo__test_mess_sub_mess__get_packed_size(NULL, merged);
    packed = malloc (size);
-   foo__test_mess_sub_mess__pack (merged, packed);
+   foo__test_mess_sub_mess__pack (NULL, merged, packed);
 
    assert (size == sizeof (test_submess_merged2));
    assert (memcmp (packed, test_submess_merged2, size) == 0);
@@ -1882,18 +1876,18 @@ static ProtobufCInstance test_allocator = {
 #define SETUP_TEST_ALLOC_BUFFER(pbuf, len)					\
   uint8_t bytes[] = "some bytes", *pbuf;						\
   size_t len, _len2;                                        \
-  Foo__DefaultRequiredValues _req = __FOO__DEFAULT_REQUIRED_VALUES__INTERNAL_INITIALIZER__;		\
-  Foo__AllocValues _mess = __FOO__ALLOC_VALUES__INTERNAL_INITIALIZER__;				\
+  Foo__DefaultRequiredValues _req = __FOO__DEFAULT_REQUIRED_VALUES__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);		\
+  Foo__AllocValues _mess = __FOO__ALLOC_VALUES__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);				\
   _mess.a_string = "some string";						\
   _mess.r_string = repeated_strings_2;						\
   _mess.n_r_string = sizeof(repeated_strings_2) / sizeof(*repeated_strings_2);	\
   _mess.a_bytes.len = sizeof(bytes);						\
   _mess.a_bytes.data = bytes;							\
   _mess.a_mess = &_req;								\
-  len = foo__alloc_values__get_packed_size (&_mess);			\
+  len = foo__alloc_values__get_packed_size (NULL, &_mess);			\
   pbuf = malloc (len);							\
   assert (pbuf);								\
-  _len2 = foo__alloc_values__pack (&_mess, pbuf);			\
+  _len2 = foo__alloc_values__pack (NULL, &_mess, pbuf);			\
   assert (len == _len2);
 
 static void
@@ -1917,6 +1911,7 @@ test_alloc_free_all (void)
   free (packed);
 }
 
+#if 0 /* see "test alloc failure" in the test table */
 /* TODO: test alloc failure for slab, unknown fields */
 static void
 test_alloc_fail (void)
@@ -1927,6 +1922,7 @@ test_alloc_fail (void)
   while (test_allocator_data.allocs_left < 0);
   free (packed);
 }
+#endif
 
 /* This test checks that protobuf decoder is capable of detecting special
    cases of incomplete messages. The message should have at least two required
@@ -1984,121 +1980,121 @@ test_field_flags (void)
 static void
 test_message_check(void)
 {
-  Foo__TestMessageCheck__SubMessage sm = __FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INTERNAL_INITIALIZER__;
-  Foo__TestMessageCheck__SubMessage sm2 = __FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INTERNAL_INITIALIZER__;
-  Foo__TestMessageCheck m = __FOO__TEST_MESSAGE_CHECK__INTERNAL_INITIALIZER__;
+  Foo__TestMessageCheck__SubMessage sm = __FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+  Foo__TestMessageCheck__SubMessage sm2 = __FOO__TEST_MESSAGE_CHECK__SUB_MESSAGE__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
+  Foo__TestMessageCheck m = __FOO__TEST_MESSAGE_CHECK__INTERNAL_INITIALIZER__(PROTOBUF_C_FLAG_REF_STATE_GLOBAL, 0);
   char *null = NULL;
   char *str = "";
   Foo__TestMessageCheck__SubMessage *sm_p;
   ProtobufCBinaryData bd;
 
   /* test incomplete submessage */
-  assert(0 == protobuf_c_message_check(&sm.base));
+  assert(0 == protobuf_c_message_check(NULL, &sm.base));
 
   /* test complete submessage */
   sm.str = str;
-  assert(1 == protobuf_c_message_check(&sm.base));
+  assert(1 == protobuf_c_message_check(NULL, &sm.base));
 
   /* test just initialized message */
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with required_string not set */
   m.required_string = NULL;
   m.required_msg = &sm;
   m.required_bytes.data = str; m.required_bytes.len = 1;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with required_msg not set */
   m.required_string = str;
   m.required_msg = NULL;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with required_bytes set incorrectly */
   m.required_msg = &sm;
   m.required_bytes.data = NULL; m.required_bytes.len = 1;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with all required fields set */
   m.required_bytes.data = str; m.required_bytes.len = 1;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with incomplete required submessage */
   sm.str = NULL;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with incomplete optional submessage */
   sm.str = str;
   m.optional_msg = &sm2;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with complete optional submessage */
   sm2.str = str;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with correct optional bytes */
   m.has_optional_bytes = 1;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with incorrect optional bytes */
   m.optional_bytes.data = NULL; m.optional_bytes.len = 1;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with correct optional bytes */
   m.optional_bytes.data = str; m.optional_bytes.len = 1;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated strings set incorrectly */
   m.n_repeated_string = 1;
   m.repeated_string = &null;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated strings set correctly */
   m.repeated_string = &str;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated submessage set incorrectly */
   sm_p = NULL;
   m.n_repeated_msg = 1;
   m.repeated_msg = &sm_p;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated incomplete submessage */
   sm_p = &sm;
   sm.str = NULL;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated complete submessage */
   sm.str = str;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated bytes set incorrectly */
   bd.len = 1;
   bd.data = NULL;
   m.n_repeated_bytes = 1;
   m.repeated_bytes = &bd;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with repeated bytes set correctly */
   bd.data = str;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with empty repeated string vector */
   m.repeated_string = NULL;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with empty repeated bytes vector */
   m.repeated_string = &str;
   m.repeated_bytes = NULL;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test with empty repeated submessage vector */
   m.repeated_bytes = &bd;
   m.repeated_msg = NULL;
-  assert(0 == protobuf_c_message_check(&m.base));
+  assert(0 == protobuf_c_message_check(NULL, &m.base));
 
   /* test all vectors set again */
   m.repeated_msg = &sm_p;
-  assert(1 == protobuf_c_message_check(&m.base));
+  assert(1 == protobuf_c_message_check(NULL, &m.base));
 }
 
 /* === simple testing framework === */
@@ -2226,7 +2222,11 @@ static Test tests[] =
   { "test submessage merge", test_submessage_merge },
 
   { "test free unpacked", test_alloc_free_all },
+#if 0
+  /* The RIFT runtime asserts on allocation failure (see do_alloc() in
+   * protobuf-c.c) instead of unwinding, so graceful cleanup can't be tested. */
   { "test alloc failure", test_alloc_fail },
+#endif
 
   { "test required_fields_bitmap", test_required_fields_bitmap },
 

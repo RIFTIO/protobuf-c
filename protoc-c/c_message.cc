@@ -1472,7 +1472,7 @@ GenerateMinikeyDescriptor(io::Printer* printer, const bool hide_from_gi)
   printer->Indent();
   printer->Print(vars, ".pbc_mdesc = &$mlcclassname$__descriptor,\n");
   char type[20];
-  sprintf(type, "%d", key_fields.size());
+  sprintf(type, "%d", (int)key_fields.size());
   printer->Print(".key_type = RW_SCHEMA_ELEMENT_TYPE_LISTY_$type$,\n",
                  "type", type);
   printer->Outdent();
