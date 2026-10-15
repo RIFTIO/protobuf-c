@@ -1,3 +1,10 @@
+protobuf-c (1.1.0.rw.11-0ubuntu1) resolute; urgency=medium
+
+  * protoc-c: do not compare flat-inline (array) fields with NULL in the
+    generated GI list setters; GCC 12+ -Waddress, an error under -Werror.
+
+ -- Jeremy Mordkoff <dzscloudadmin@zhone.com>  Thu, 15 Oct 2026 19:01:27 +0000
+
 protobuf-c (1.1.0.rw.10-0ubuntu1) resolute; urgency=medium
 
   * Port to Ubuntu 26.04 (GCC 15, protobuf 3.21).

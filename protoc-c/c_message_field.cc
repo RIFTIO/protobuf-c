@@ -486,9 +486,16 @@ void MessageFieldGenerator::GenerateGiCSetterMethod(io::Printer* printer) const
                          "\n"
                          "$gi_tname$** $new_boxed_l$ = protobuf_c_gi_boxed_zalloc(sizeof($gi_tname$*)*(len+1));\n"
                          "int n_listy_children = 0;\n"
-                         "if ($boxed_field$ != NULL) {\n"
-                            /* Match incoming list to existing list, to determine what to free */
-                         "  if ($pb_field$  != NULL) {\n"
+                         "if ($boxed_field$ != NULL) {\n");
+    /* Match incoming list to existing list, to determine what to free.  A
+     * flat-inline field is an array, whose address is never NULL (GCC 12+
+     * -Waddress). */
+    if (riftopts.flatinline) {
+      printer->Print("  {\n");
+    } else {
+      printer->Print(vars, "  if ($pb_field$  != NULL) {\n");
+    }
+    printer->Print(vars,
                          "    for (i = 0; $boxed_field$[i] != NULL; i++) {\n"
                          "      n_listy_children++;\n"
                          "      $gi_tname$ *_old_child_ = $boxed_field$[i];\n"
