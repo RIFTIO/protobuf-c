@@ -1,0 +1,4 @@
+usr/include/google/protobuf-c/rift-protobuf-c.h
+usr/include/protobuf-c/
+usr/lib/*/libprotobuf-c.so
+usr/lib/*/pkgconfig/libprotobuf-c.pc

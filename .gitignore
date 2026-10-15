@@ -42,3 +42,11 @@ t/version/version
 *.pb.cc
 *.pb.h
 t/security/test-security
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/files
+/debian/tmp/
+/debian/*.substvars
+/debian/libprotobuf-c1/
+/debian/libprotobuf-c-dev/
+/debian/protobuf-c-compiler/

@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+# protoc-c sizes arrays with new T[n] from int descriptor counts, which GCC 15
+# misreports as possibly negative.
+export DEB_CXXFLAGS_MAINT_APPEND = -Wno-alloc-size-larger-than
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	dh_auto_install
+	# Installed as rift-protoc-c so it can coexist with a stock protoc-c.
+	mv debian/tmp/usr/bin/protoc-c debian/tmp/usr/bin/rift-protoc-c
+
+override_dh_strip:
+	dh_strip --dbgsym-migration='libprotobuf-c1-dbg (<< 1.1.0.rw.10~)'
